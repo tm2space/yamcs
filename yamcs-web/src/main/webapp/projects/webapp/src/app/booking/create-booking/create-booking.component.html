@@ -1,0 +1,61 @@
+<ya-instance-page>
+  <ya-instance-toolbar>
+    <ng-template ya-instance-toolbar-label>
+      <ya-page-icon-button
+        [routerLink]="['/booking']"
+        [queryParams]="{ c: yamcs.context }"
+        icon="arrow_back" />
+      Create New Booking
+    </ng-template>
+  </ya-instance-toolbar>
+
+  <ya-panel>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="ya-form">
+
+      <ya-field label="Provider">
+        <ya-select formControlName="providerId" [options]="providerOptions" />
+      </ya-field>
+
+      <ya-field label="Start Date & Time">
+        <ya-date-time-input formControlName="startDateTime" step="60" [showNow]="true" />
+      </ya-field>
+
+      <ya-field label="Booking Rule">
+        <ya-select formControlName="ruleType" [options]="ruleTypeOptions" />
+      </ya-field>
+
+      <ya-field
+        [label]="getFrequencyLabel()"
+        *ngIf="showFrequencyField()">
+        <input type="number" formControlName="frequencyDays" min="1" />
+        <small>{{ getFrequencyNote() }}</small>
+      </ya-field>
+
+      <ya-field label="Purpose">
+        <textarea formControlName="purpose" rows="3" required></textarea>
+      </ya-field>
+
+      <ya-field label="Additional Notes">
+        <textarea formControlName="notes" rows="3"></textarea>
+      </ya-field>
+
+    </form>
+
+    <div *ngIf="submissionStatus !== 'idle'" class="submission-status">
+      <div [class]="'status-' + submissionStatus">
+        {{ submissionMessage }}
+      </div>
+    </div>
+
+    <div class="ya-button-bar">
+      <ya-button (click)="onCancel()">CANCEL</ya-button>
+      <ya-button
+        appearance="primary"
+        (click)="onSubmit()"
+        [disabled]="form.invalid || isSubmitting">
+        {{ isSubmitting ? 'CREATING...' : 'CREATE BOOKING' }}
+      </ya-button>
+    </div>
+
+  </ya-panel>
+</ya-instance-page>

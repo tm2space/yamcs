@@ -1,0 +1,89 @@
+<ya-instance-page>
+  <ya-instance-toolbar>
+    <ng-template ya-instance-toolbar-label>
+      <ya-page-icon-button
+        [routerLink]="['/booking']"
+        [queryParams]="{ c: yamcs.context }"
+        icon="arrow_back" />
+      All Bookings
+    </ng-template>
+
+    <ya-page-button (clicked)="refresh()" icon="refresh">Refresh</ya-page-button>
+    <ya-page-button
+      [routerLink]="['/booking/create']"
+      [queryParams]="{ c: yamcs.context }"
+      icon="add">New Booking</ya-page-button>
+  </ya-instance-toolbar>
+
+  <ya-panel>
+    <table mat-table [dataSource]="bookings" class="ya-data-table expand">
+      <!-- Start Time Column -->
+      <ng-container cdkColumnDef="startTime">
+        <th mat-header-cell *cdkHeaderCellDef>Start Time</th>
+        <td mat-cell *cdkCellDef="let booking">
+          {{ formatDateTime(booking.startTime) }}
+        </td>
+      </ng-container>
+
+      <!-- Ground Station Column -->
+      <ng-container cdkColumnDef="yamcsGsName">
+        <th mat-header-cell *cdkHeaderCellDef>Ground Station</th>
+        <td mat-cell *cdkCellDef="let booking">{{ booking.yamcsGsName }}</td>
+      </ng-container>
+
+      <!-- Provider Column -->
+      <ng-container cdkColumnDef="providerName">
+        <th mat-header-cell *cdkHeaderCellDef>Provider</th>
+        <td mat-cell *cdkCellDef="let booking">{{ booking.providerName }}</td>
+      </ng-container>
+
+      <!-- Purpose Column -->
+      <ng-container cdkColumnDef="purpose">
+        <th mat-header-cell *cdkHeaderCellDef>Purpose</th>
+        <td mat-cell *cdkCellDef="let booking">{{ booking.purpose }}</td>
+      </ng-container>
+
+      <!-- Requested By Column -->
+      <ng-container cdkColumnDef="requestedBy">
+        <th mat-header-cell *cdkHeaderCellDef>Requested By</th>
+        <td mat-cell *cdkCellDef="let booking">{{ booking.requestedBy }}</td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container cdkColumnDef="status">
+        <th mat-header-cell *cdkHeaderCellDef>Status</th>
+        <td mat-cell *cdkCellDef="let booking">
+          <span class="status-badge" [class]="getStatusClass(booking.status)">
+            {{ booking.status | titlecase }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container cdkColumnDef="actions">
+        <th mat-header-cell *cdkHeaderCellDef>Actions</th>
+        <td mat-cell *cdkCellDef="let booking">
+          <button
+            mat-icon-button
+            [disabled]="booking.status !== 'pending'"
+            [title]="booking.status === 'pending' ? 'View details' : 'Cannot modify ' + booking.status + ' booking'"
+          >
+            <mat-icon>info</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *cdkHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *cdkRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <div *ngIf="bookings.length === 0" class="empty-state">
+      <mat-icon class="empty-icon">event_busy</mat-icon>
+      <h3>No bookings found</h3>
+      <ya-page-button
+        [routerLink]="['/booking/create']"
+        [queryParams]="{ c: yamcs.context }"
+        icon="add">Create First Booking</ya-page-button>
+    </div>
+  </ya-panel>
+</ya-instance-page>

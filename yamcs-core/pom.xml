@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.yamcs</groupId>
     <artifactId>yamcs</artifactId>
-    <version>5.12.1-SNAPSHOT</version>
+    <version>5.12.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>yamcs-core</artifactId>
@@ -92,6 +92,18 @@
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
+    </dependency>
+
+    <!-- Database dependencies for booking system -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.7.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>5.1.0</version>
     </dependency>
 
     <dependency>
