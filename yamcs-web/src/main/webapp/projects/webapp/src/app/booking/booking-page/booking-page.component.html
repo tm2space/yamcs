@@ -65,4 +65,12 @@
       </table>
     </div>
   </ya-panel>
+
+  <!-- Pending Approvals Overlay -->
+  <app-pending-approvals-overlay
+    [pendingBookings]="pendingBookings"
+    [showApprovals]="showApprovals()"
+    (approve)="onApproveBooking($event)"
+    (reject)="onRejectBooking($event)">
+  </app-pending-approvals-overlay>
 </ya-instance-page>

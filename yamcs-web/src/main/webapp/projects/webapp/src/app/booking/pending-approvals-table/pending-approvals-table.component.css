@@ -1,0 +1,32 @@
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+}
+
+.status-approved {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
+.status-rejected {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+.status-cancelled {
+  background: rgba(158, 158, 158, 0.1);
+  color: #9e9e9e;
+}
+
+.status-completed {
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+}

@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { BookingService, GSProvider, GSBooking } from '../booking.service';
-import { WebappSdkModule } from '@yamcs/webapp-sdk';
+import { WebappSdkModule, AuthService, User } from '@yamcs/webapp-sdk';
+import { PendingApprovalsOverlayComponent } from '../pending-approvals-overlay/pending-approvals-overlay.component';
 
 @Component({
   standalone: true,
@@ -12,14 +13,17 @@ import { WebappSdkModule } from '@yamcs/webapp-sdk';
     RouterModule,
     MatTableModule,
     WebappSdkModule,
+    PendingApprovalsOverlayComponent,
   ],
   templateUrl: './booking-page.component.html',
   styleUrl: './booking-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookingPageComponent implements OnInit {
+  private user: User;
   providers: GSProvider[] = [];
   recentBookings: GSBooking[] = [];
+  pendingBookings: GSBooking[] = [];
 
   pendingCount = 0;
   activeCount = 0;
@@ -29,8 +33,11 @@ export class BookingPageComponent implements OnInit {
 
   constructor(
     private bookingService: BookingService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.user = authService.getUser()!;
+  }
 
   ngOnInit() {
     this.loadData();
@@ -52,14 +59,16 @@ export class BookingPageComponent implements OnInit {
       }
     });
 
-    // Load pending bookings count
+    // Load pending bookings
     this.bookingService.getPendingBookings().subscribe({
       next: (bookings) => {
+        this.pendingBookings = bookings || [];
         this.pendingCount = (bookings || []).length;
         this.cdr.markForCheck();
       },
       error: (error) => {
         console.error('Error loading pending bookings:', error);
+        this.pendingBookings = [];
         this.pendingCount = 0;
         this.cdr.markForCheck();
       }
@@ -86,5 +95,37 @@ export class BookingPageComponent implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  showApprovals() {
+    // You can add permission check here if needed
+    return true;
+  }
+
+  onApproveBooking(booking: GSBooking) {
+    this.bookingService.approveBooking(booking.id).subscribe({
+      next: () => {
+        console.log('Booking approved successfully');
+        this.loadData(); // Reload data to update the UI
+      },
+      error: (error) => {
+        console.error('Error approving booking:', error);
+      }
+    });
+  }
+
+  onRejectBooking(booking: GSBooking) {
+    const reason = prompt('Please enter rejection reason:');
+    if (reason) {
+      this.bookingService.rejectBooking(booking.id, reason).subscribe({
+        next: () => {
+          console.log('Booking rejected successfully');
+          this.loadData(); // Reload data to update the UI
+        },
+        error: (error) => {
+          console.error('Error rejecting booking:', error);
+        }
+      });
+    }
   }
 }

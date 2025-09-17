@@ -1,0 +1,59 @@
+<div class="packet-overlay">
+  <!-- Collapsed Summary View -->
+  @if (isCollapsed$ | async) {
+    <div class="collapsed-summary" (click)="toggleCollapse()">
+      <div class="summary-content">
+        <div class="summary-icon">
+          <mat-icon>pending_actions</mat-icon>
+        </div>
+        <div class="summary-stats">
+          <div class="stat-item">
+            <span class="stat-label">Pending</span>
+            <span class="stat-value">{{ getTotalPendingCount() | number:'1.0-0' }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Approvals</span>
+            <span class="stat-value">{{ pendingBookings.length | number:'1.0-0' }}</span>
+          </div>
+        </div>
+        <div class="expand-icon">
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Collapsible Panel -->
+  <div
+    class="overlay-panel"
+    [class.collapsed]="isCollapsed$ | async"
+    [class.expanded]="!(isCollapsed$ | async)">
+
+    <div class="panel-header">
+      <div class="panel-title">
+        <mat-icon>pending_actions</mat-icon>
+        <span>Pending Approvals</span>
+      </div>
+      <button
+        class="close-button"
+        (click)="toggleCollapse()"
+        mat-icon-button>
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="panel-content">
+      @if (showApprovals && pendingBookings.length > 0) {
+        <app-pending-approvals-table
+          [pendingBookings]="pendingBookings"
+          (approve)="onApproveBooking($event)"
+          (reject)="onRejectBooking($event)" />
+      } @else {
+        <div class="no-data-message">
+          <mat-icon>info</mat-icon>
+          <span>No pending approvals</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>
