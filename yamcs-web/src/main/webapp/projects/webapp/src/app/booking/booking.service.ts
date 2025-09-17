@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { YamcsService } from '@yamcs/webapp-sdk';
 
 export interface GSProvider {
   id: number;
@@ -61,36 +62,36 @@ export interface ApprovalRequest {
 })
 export class BookingService {
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private yamcs: YamcsService) {}
 
   // Provider methods
   getProviders(): Observable<GSProvider[]> {
-    return this.http.get<{providers: GSProvider[]}>('/api/booking/providers')
+    return this.http.get<{providers: GSProvider[]}>(`${this.yamcs.yamcsClient.baseHref}api/booking/providers`)
       .pipe(map(response => response.providers));
   }
 
   // Booking methods
   getBookings(): Observable<GSBooking[]> {
-    return this.http.get<{bookings: GSBooking[]}>('/api/booking/bookings')
+    return this.http.get<{bookings: GSBooking[]}>(`${this.yamcs.yamcsClient.baseHref}api/booking/bookings`)
       .pipe(map(response => response.bookings));
   }
 
   getPendingBookings(): Observable<GSBooking[]> {
-    return this.http.get<{bookings: GSBooking[]}>('/api/booking/bookings/pending')
+    return this.http.get<{bookings: GSBooking[]}>(`${this.yamcs.yamcsClient.baseHref}api/booking/bookings/pending`)
       .pipe(map(response => response.bookings));
   }
 
   createBooking(booking: BookingRequest): Observable<GSBooking> {
-    return this.http.post<GSBooking>('/api/booking/bookings', booking);
+    return this.http.post<GSBooking>(`${this.yamcs.yamcsClient.baseHref}api/booking/bookings`, booking);
   }
 
   approveBooking(bookingId: number, comments?: string): Observable<{status: string}> {
     const request: ApprovalRequest = { comments };
-    return this.http.post<{status: string}>(`/api/booking/bookings/${bookingId}/approve`, request);
+    return this.http.post<{status: string}>(`${this.yamcs.yamcsClient.baseHref}api/booking/bookings/${bookingId}/approve`, request);
   }
 
   rejectBooking(bookingId: number, reason: string): Observable<{status: string}> {
     const request: ApprovalRequest = { comments: reason };
-    return this.http.post<{status: string}>(`/api/booking/bookings/${bookingId}/reject`, request);
+    return this.http.post<{status: string}>(`${this.yamcs.yamcsClient.baseHref}api/booking/bookings/${bookingId}/reject`, request);
   }
 }
