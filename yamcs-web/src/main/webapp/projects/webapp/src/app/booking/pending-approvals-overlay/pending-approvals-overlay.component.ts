@@ -24,9 +24,6 @@ export class PendingApprovalsOverlayComponent {
     this.isCollapsed$.next(!this.isCollapsed$.value);
   }
 
-  getTotalPendingCount(): number {
-    return this.pendingBookings.length;
-  }
 
   onApproveBooking(booking: GSBooking) {
     this.approve.emit(booking);

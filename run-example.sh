@@ -3,7 +3,7 @@
 # Load environment variables from .env file
 if [ -f .env ]; then
     echo "Loading environment variables from .env"
-    export $(grep -v '^#' .env | xargs)
+    export $(grep -v '^#' .env | grep -v '^$' | xargs)
 fi
 
 YAMCS_OPTS="$YAMCS_OPTS ${@:2}"
