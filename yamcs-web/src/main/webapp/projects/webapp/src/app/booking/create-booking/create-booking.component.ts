@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@
 import { Router } from '@angular/router';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BookingService, GSProvider, BookingRequest } from '../booking.service';
-import { WebappSdkModule, YamcsService, YaSelectOption, utils } from '@yamcs/webapp-sdk';
+import { WebappSdkModule, YamcsService, YaSelectOption, utils, MessageService } from '@yamcs/webapp-sdk';
 
 @Component({
   standalone: true,
@@ -16,14 +16,15 @@ export class CreateBookingComponent implements OnInit {
   providers: GSProvider[] = [];
 
   providerOptions: YaSelectOption[] = [];
+  groundStationOptions: YaSelectOption[] = [];
 
-  ruleTypeOptions: YaSelectOption[] = [
-    { id: 'one_time', label: 'One-time booking' },
-    { id: 'daily', label: 'Daily recurring' },
-    { id: 'weekly', label: 'Weekly recurring' },
-    { id: 'monthly', label: 'Monthly recurring' }
-  ];
+  passTypeOptions: YaSelectOption[] = [];
+  purposeOptions: YaSelectOption[] = [];
+  ruleTypeOptions: YaSelectOption[] = [];
+  priorityOptions: YaSelectOption[] = [];
+  frequencyBandOptions: YaSelectOption[] = [];
 
+  showAdvancedOptions = false;
   isSubmitting = false;
   submissionStatus: 'idle' | 'success' | 'error' = 'idle';
   submissionMessage = '';
@@ -33,21 +34,76 @@ export class CreateBookingComponent implements OnInit {
     private bookingService: BookingService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    readonly yamcs: YamcsService
+    readonly yamcs: YamcsService,
+    private messageService: MessageService
   ) {
+    const currentTime = yamcs.getMissionTime();
+    const endTime = new Date(currentTime.getTime() + (15 * 60 * 1000)); // Default 15 minutes
+    const satelliteName = yamcs.context ? yamcs.context.split('__')[0] : 'default'; // Extract satellite name from context (e.g., 'moi-1__realtime' -> 'moi-1')
+
     this.form = formBuilder.group({
       providerId: ['', Validators.required],
-      startDateTime: [utils.toISOString(yamcs.getMissionTime()), Validators.required],
-      purpose: ['', Validators.required],
-      ruleType: 'one_time',
+      satelliteName: [{value: satelliteName, disabled: true}], // Auto-populated and read-only
+      startDateTime: [utils.toISOString(currentTime), Validators.required],
+      durationMinutes: [15, [Validators.required, Validators.min(5), Validators.max(480)]],
+      passType: ['both', Validators.required],
+      purpose: ['telemetry', Validators.required],
+      ruleType: ['one_time', Validators.required],
       frequencyDays: [''],
-      notes: ['']
+      notes: [''],
+      priority: ['normal'],
+      frequencyBand: ['S'],
+      dataVolume: [100]
     });
   }
 
   ngOnInit() {
     this.loadProviders();
+    this.loadEnumValues();
     this.setupFormValidation();
+    this.setupGroundStations();
+  }
+
+  private setupGroundStations() {
+    // Initialize ground station options based on provider selection
+    this.form.get('providerId')?.valueChanges.subscribe((providerId) => {
+      if (providerId) {
+        this.updateGroundStationOptions(providerId);
+      }
+    });
+  }
+
+  private updateGroundStationOptions(providerId: string) {
+    // Update ground station options based on selected provider
+    const provider = this.providers.find(p => p.id.toString() === providerId);
+    if (provider) {
+      // For now, use default ground stations. This can be extended to fetch from provider API
+      switch(provider.type) {
+        case 'leafspace':
+          this.groundStationOptions = [
+            { id: 'LEAF_AZORES', label: 'Azores Ground Station' },
+            { id: 'LEAF_LISBON', label: 'Lisbon Ground Station' }
+          ];
+          break;
+        case 'dhruva':
+          this.groundStationOptions = [
+            { id: 'DHRUVA_BLR', label: 'Bangalore Ground Station' },
+            { id: 'DHRUVA_HYD', label: 'Hyderabad Ground Station' }
+          ];
+          break;
+        case 'isro':
+          this.groundStationOptions = [
+            { id: 'ISRO_ISTRAC', label: 'ISTRAC Bangalore' },
+            { id: 'ISRO_LUCKNOW', label: 'Lucknow Ground Station' }
+          ];
+          break;
+        default:
+          this.groundStationOptions = [
+            { id: 'DEFAULT_GS', label: 'Default Ground Station' }
+          ];
+      }
+      this.cdr.markForCheck();
+    }
   }
 
   private loadProviders() {
@@ -69,6 +125,88 @@ export class CreateBookingComponent implements OnInit {
     });
   }
 
+  private loadEnumValues() {
+    this.bookingService.getEnumValues().subscribe({
+      next: (enums) => {
+        // Convert enum values to select options
+        this.passTypeOptions = enums.passTypes.map(type => ({
+          id: type,
+          label: this.formatEnumLabel(type)
+        }));
+
+        this.purposeOptions = enums.purposeTypes.map(type => ({
+          id: type,
+          label: this.formatEnumLabel(type)
+        }));
+
+        this.ruleTypeOptions = enums.ruleTypes.map(type => ({
+          id: type,
+          label: this.formatRuleTypeLabel(type)
+        }));
+
+        // Populate advanced options
+        this.priorityOptions = [
+          { id: 'low', label: 'Low' },
+          { id: 'normal', label: 'Normal' },
+          { id: 'high', label: 'High' },
+          { id: 'urgent', label: 'Urgent' }
+        ];
+
+        this.frequencyBandOptions = [
+          { id: 'S', label: 'S-Band' },
+          { id: 'X', label: 'X-Band' },
+          { id: 'Ku', label: 'Ku-Band' },
+          { id: 'Ka', label: 'Ka-Band' }
+        ];
+
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error loading enum values:', error);
+        // Fallback to default values if API fails
+        this.setDefaultEnumValues();
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private formatEnumLabel(enumValue: string): string {
+    return enumValue.charAt(0).toUpperCase() + enumValue.slice(1).replace('_', ' ');
+  }
+
+  private formatRuleTypeLabel(ruleType: string): string {
+    switch (ruleType) {
+      case 'one_time': return 'One-time booking';
+      case 'daily': return 'Daily recurring';
+      case 'weekly': return 'Weekly recurring';
+      case 'monthly': return 'Monthly recurring';
+      default: return this.formatEnumLabel(ruleType);
+    }
+  }
+
+  private setDefaultEnumValues() {
+    // Fallback enum values if API fails
+    this.passTypeOptions = [
+      { id: 'downlink', label: 'Downlink' },
+      { id: 'uplink', label: 'Uplink' },
+      { id: 'both', label: 'Both' }
+    ];
+
+    this.purposeOptions = [
+      { id: 'telemetry', label: 'Telemetry' },
+      { id: 'command', label: 'Command' },
+      { id: 'routine', label: 'Routine' },
+      { id: 'emergency', label: 'Emergency' }
+    ];
+
+    this.ruleTypeOptions = [
+      { id: 'one_time', label: 'One-time booking' },
+      { id: 'daily', label: 'Daily recurring' },
+      { id: 'weekly', label: 'Weekly recurring' },
+      { id: 'monthly', label: 'Monthly recurring' }
+    ];
+  }
+
   private setupFormValidation() {
     // Show/hide frequency field based on rule type
     this.form.get('ruleType')?.valueChanges.subscribe((ruleType) => {
@@ -83,34 +221,22 @@ export class CreateBookingComponent implements OnInit {
     });
   }
 
-  private combineDateTime(date: Date, time: string): Date {
-    const [hours, minutes] = time.split(':').map(Number);
-    const combined = new Date(date);
-    combined.setHours(hours, minutes, 0, 0);
-    return combined;
-  }
-
-  private formatDateTime(date: Date, time: string): string {
-    const combined = this.combineDateTime(date, time);
-    return combined.toISOString();
-  }
-
   onSubmit() {
     if (this.form.valid && !this.isSubmitting) {
       this.isSubmitting = true;
 
       const formValue = this.form.value;
-      const startDate = new Date(formValue.startDateTime);
-      const endDate = new Date(startDate.getTime() + (2 * 60 * 60 * 1000)); // Default 2 hours
+      const provider = this.providers.find(p => p.id === parseInt(formValue.providerId));
 
       const bookingRequest: BookingRequest = {
-        providerId: parseInt(formValue.providerId),
-        yamcsGsName: 'GS1', // Default ground station
+        provider: provider?.name || 'Unknown Provider',
+        satelliteId: this.form.get('satelliteName')?.value, // Get from disabled field
         startTime: utils.toISOString(formValue.startDateTime),
-        endTime: endDate.toISOString(),
+        durationMinutes: formValue.durationMinutes,
+        passType: formValue.passType,
         purpose: formValue.purpose,
         ruleType: formValue.ruleType,
-        frequencyDays: formValue.frequencyDays || undefined,
+        frequencyDays: formValue.ruleType !== 'one_time' ? (formValue.frequencyDays || 1) : undefined,
         notes: formValue.notes || undefined
       };
 
@@ -118,23 +244,29 @@ export class CreateBookingComponent implements OnInit {
         next: (booking) => {
           console.log('Booking created successfully:', booking);
           this.isSubmitting = false;
-          this.submissionStatus = 'success';
-          this.submissionMessage = 'Booking created successfully!';
           this.cdr.markForCheck();
+
+          // Show success message with details
+          const startTime = new Date(booking.startTime).toLocaleString();
+          this.messageService.showInfo(
+            `🎉 Booking created successfully! ${booking.satelliteId} pass on ${booking.provider} starting ${startTime}`
+          );
 
           // Navigate after showing success message
           setTimeout(() => {
             this.router.navigate(['/booking'], {
               queryParams: { c: this.yamcs.context }
             });
-          }, 2000);
+          }, 1500);
         },
         error: (error) => {
           console.error('Error creating booking:', error);
           this.isSubmitting = false;
-          this.submissionStatus = 'error';
-          this.submissionMessage = 'Failed to create booking. Please try again.';
           this.cdr.markForCheck();
+
+          // Show detailed error message
+          const errorMessage = error?.error?.msg || error?.message || 'Unknown error occurred';
+          this.messageService.showError(`❌ Failed to create booking: ${errorMessage}`);
         }
       });
     }
@@ -148,6 +280,10 @@ export class CreateBookingComponent implements OnInit {
 
   showFrequencyField(): boolean {
     return this.form.get('ruleType')?.value !== 'one_time';
+  }
+
+  toggleAdvancedOptions(): void {
+    this.showAdvancedOptions = !this.showAdvancedOptions;
   }
 
   getFrequencyLabel(): string {

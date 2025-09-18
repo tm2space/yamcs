@@ -19,6 +19,27 @@ import java.util.List;
 public class BookingApi extends AbstractBookingApi<Context> {
 
     @Override
+    public void getEnumValues(Context ctx, Empty request, Observer<GetEnumValuesResponse> observer) {
+        try {
+            BookingDatabase database = getBookingDatabase();
+
+            GetEnumValuesResponse.Builder responseBuilder = GetEnumValuesResponse.newBuilder();
+
+            // Get enum values from database
+            responseBuilder.addAllProviderTypes(database.getProviderTypes());
+            responseBuilder.addAllRuleTypes(database.getRuleTypes());
+            responseBuilder.addAllStatusTypes(database.getStatusTypes());
+            responseBuilder.addAllPassTypes(database.getPassTypes());
+            responseBuilder.addAllPurposeTypes(database.getPurposeTypes());
+            responseBuilder.addAllGsStatusTypes(database.getGsStatusTypes());
+
+            observer.complete(responseBuilder.build());
+        } catch (Exception e) {
+            observer.completeExceptionally(e);
+        }
+    }
+
+    @Override
     public void getProviders(Context ctx, Empty request, Observer<GetProvidersResponse> observer) {
         try {
             BookingDatabase database = getBookingDatabase();
@@ -64,26 +85,38 @@ public class BookingApi extends AbstractBookingApi<Context> {
             BookingDatabase database = getBookingDatabase();
 
             GSBooking booking = new GSBooking();
-            booking.setProviderId(request.getProviderId());
-            booking.setYamcsGsName(request.getYamcsGsName());
-            booking.setStartTime(toLocalDateTime(request.getStartTime()));
-            booking.setEndTime(toLocalDateTime(request.getEndTime()));
-            booking.setPurpose(request.getPurpose());
 
-            // Set optional fields only if they exist
-            if (request.hasMissionName() && !request.getMissionName().isEmpty()) {
-                booking.setMissionName(request.getMissionName());
+            // Map the fields from the new protobuf to the database schema
+            if (request.hasProvider()) {
+                booking.setProvider(request.getProvider());
             }
-            if (request.hasSatelliteName() && !request.getSatelliteName().isEmpty()) {
-                booking.setSatelliteName(request.getSatelliteName());
+            if (request.hasSatelliteId()) {
+                booking.setSatelliteId(request.getSatelliteId());
+            }
+
+            booking.setStartTime(toLocalDateTime(request.getStartTime()));
+
+            // Use duration directly from request
+            if (request.hasDurationMinutes()) {
+                booking.setDurationMinutes(request.getDurationMinutes());
+            } else {
+                booking.setDurationMinutes(15); // default
+            }
+
+            if (request.hasPassType()) {
+                booking.setPassType(request.getPassType());
+            } else {
+                booking.setPassType("both"); // default
+            }
+
+            booking.setPurpose(request.getPurpose());
+            booking.setRuleType(request.getRuleType());
+
+            if (request.hasFrequencyDays()) {
+                booking.setFrequencyDays(request.getFrequencyDays());
             }
             if (request.hasNotes() && !request.getNotes().isEmpty()) {
                 booking.setNotes(request.getNotes());
-            }
-
-            booking.setRuleType(BookingRuleType.valueOf(request.getRuleType()));
-            if (request.hasFrequencyDays()) {
-                booking.setFrequencyDays(request.getFrequencyDays());
             }
             booking.setRequestedBy(user.getName());
 
@@ -215,23 +248,25 @@ public class BookingApi extends AbstractBookingApi<Context> {
     private BookingInfo toBookingInfo(GSBooking booking) {
         BookingInfo.Builder builder = BookingInfo.newBuilder()
             .setId(booking.getId())
-            .setProviderId(booking.getProviderId())
-            .setYamcsGsName(booking.getYamcsGsName())
+            .setProvider(booking.getProvider())
+            .setSatelliteId(booking.getSatelliteId())
             .setStartTime(toTimestamp(booking.getStartTime()))
             .setEndTime(toTimestamp(booking.getEndTime()))
+            .setDurationMinutes(booking.getDurationMinutes())
+            .setPassType(booking.getPassType())
             .setPurpose(booking.getPurpose())
-            .setRuleType(booking.getRuleType().toString())
-            .setStatus(booking.getStatus().toString())
-            .setRequestedBy(booking.getRequestedBy())
-            .setCreatedAt(toTimestamp(booking.getCreatedAt()))
-            .setUpdatedAt(toTimestamp(booking.getUpdatedAt()));
+            .setRuleType(booking.getRuleType())
+            .setStatus(booking.getStatus())
+            .setGsStatus(booking.getGsStatus())
+            .setRequestedBy(booking.getRequestedBy());
 
-        if (booking.getMissionName() != null) {
-            builder.setMissionName(booking.getMissionName());
+        if (booking.getCreatedAt() != null) {
+            builder.setCreatedAt(toTimestamp(booking.getCreatedAt()));
         }
-        if (booking.getSatelliteName() != null) {
-            builder.setSatelliteName(booking.getSatelliteName());
+        if (booking.getUpdatedAt() != null) {
+            builder.setUpdatedAt(toTimestamp(booking.getUpdatedAt()));
         }
+
         if (booking.getFrequencyDays() != null) {
             builder.setFrequencyDays(booking.getFrequencyDays());
         }
@@ -246,12 +281,6 @@ public class BookingApi extends AbstractBookingApi<Context> {
         }
         if (booking.getNotes() != null) {
             builder.setNotes(booking.getNotes());
-        }
-        if (booking.getProviderName() != null) {
-            builder.setProviderName(booking.getProviderName());
-        }
-        if (booking.getProviderType() != null) {
-            builder.setProviderType(booking.getProviderType());
         }
 
         return builder.build();

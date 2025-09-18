@@ -1,5 +1,5 @@
 <ya-instance-page>
-  <ya-instance-toolbar label="Ground Station Booking">
+  <ya-instance-toolbar label="GS Pass Management">
     <ya-page-button routerLink="create" [queryParamsHandling]="'preserve'" icon="add">New Booking</ya-page-button>
     <ya-page-button routerLink="bookings" [queryParamsHandling]="'preserve'" icon="list">View All</ya-page-button>
     <ya-page-button routerLink="approvals" [queryParamsHandling]="'preserve'" icon="pending_actions">Pending Approvals</ya-page-button>
@@ -36,19 +36,19 @@
           </td>
         </ng-container>
 
-        <ng-container cdkColumnDef="yamcsGsName">
-          <th mat-header-cell *cdkHeaderCellDef>Ground Station</th>
-          <td mat-cell *cdkCellDef="let booking">{{ booking.yamcsGsName }}</td>
+        <ng-container cdkColumnDef="satelliteId">
+          <th mat-header-cell *cdkHeaderCellDef>Satellite</th>
+          <td mat-cell *cdkCellDef="let booking">{{ booking.satelliteId }}</td>
         </ng-container>
 
-        <ng-container cdkColumnDef="providerName">
+        <ng-container cdkColumnDef="provider">
           <th mat-header-cell *cdkHeaderCellDef>Provider</th>
-          <td mat-cell *cdkCellDef="let booking">{{ booking.providerName }}</td>
+          <td mat-cell *cdkCellDef="let booking">{{ booking.provider }}</td>
         </ng-container>
 
-        <ng-container cdkColumnDef="missionName">
-          <th mat-header-cell *cdkHeaderCellDef>Mission</th>
-          <td mat-cell *cdkCellDef="let booking">{{ booking.missionName || '-' }}</td>
+        <ng-container cdkColumnDef="purpose">
+          <th mat-header-cell *cdkHeaderCellDef>Purpose</th>
+          <td mat-cell *cdkCellDef="let booking">{{ booking.purpose | titlecase }}</td>
         </ng-container>
 
         <ng-container cdkColumnDef="status">

@@ -22,10 +22,12 @@ export class PendingApprovalsTableComponent {
 
   displayedColumns = [
     'startTime',
-    'endTime',
-    'yamcsGsName',
-    'providerName',
-    'missionName',
+    'satelliteId',
+    'provider',
+    'durationMinutes',
+    'passType',
+    'purpose',
+    'requestedBy',
     'status',
     'actions'
   ];

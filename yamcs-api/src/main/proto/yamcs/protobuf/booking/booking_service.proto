@@ -57,6 +57,13 @@ service BookingApi {
       body: "*"
     };
   }
+
+  // Get enum values
+  rpc GetEnumValues(google.protobuf.Empty) returns (GetEnumValuesResponse) {
+    option (yamcs.api.route) = {
+      get: "/api/booking/enums"
+    };
+  }
 }
 
 // Messages
@@ -82,41 +89,48 @@ message ProviderInfo {
 
 message BookingInfo {
   optional int32 id = 1;
-  optional int32 providerId = 2;
-  optional string providerName = 3;
-  optional string providerType = 4;
-  optional string yamcsGsName = 5;
-  optional google.protobuf.Timestamp startTime = 6;
-  optional google.protobuf.Timestamp endTime = 7;
+  optional string provider = 2;
+  optional string satelliteId = 3;
+  optional google.protobuf.Timestamp startTime = 4;
+  optional google.protobuf.Timestamp endTime = 5;
+  optional int32 durationMinutes = 6;
+  optional string passType = 7;
   optional string purpose = 8;
-  optional string missionName = 9;
-  optional string satelliteName = 10;
-  optional string ruleType = 11;
-  optional int32 frequencyDays = 12;
-  optional string status = 13;
-  optional string requestedBy = 14;
-  optional string approvedBy = 15;
-  optional google.protobuf.Timestamp approvedAt = 16;
-  optional string rejectionReason = 17;
-  optional string notes = 18;
-  optional google.protobuf.Timestamp createdAt = 19;
-  optional google.protobuf.Timestamp updatedAt = 20;
+  optional string ruleType = 9;
+  optional int32 frequencyDays = 10;
+  optional string status = 11;
+  optional string gsStatus = 12;
+  optional string requestedBy = 13;
+  optional string approvedBy = 14;
+  optional google.protobuf.Timestamp approvedAt = 15;
+  optional string rejectionReason = 16;
+  optional string notes = 17;
+  optional google.protobuf.Timestamp createdAt = 18;
+  optional google.protobuf.Timestamp updatedAt = 19;
 }
 
 message CreateBookingRequest {
-  optional int32 providerId = 1;
-  optional string yamcsGsName = 2;
+  optional string provider = 1;
+  optional string satelliteId = 2;
   optional google.protobuf.Timestamp startTime = 3;
-  optional google.protobuf.Timestamp endTime = 4;
-  optional string purpose = 5;
-  optional string missionName = 6;
-  optional string satelliteName = 7;
-  optional string ruleType = 8;
-  optional int32 frequencyDays = 9;
-  optional string notes = 10;
+  optional int32 durationMinutes = 4;
+  optional string passType = 5;
+  optional string purpose = 6;
+  optional string ruleType = 7;
+  optional int32 frequencyDays = 8;
+  optional string notes = 9;
 }
 
 message ApprovalRequest {
   optional int32 id = 1;
   optional string comments = 2;
+}
+
+message GetEnumValuesResponse {
+  repeated string providerTypes = 1;
+  repeated string ruleTypes = 2;
+  repeated string statusTypes = 3;
+  repeated string passTypes = 4;
+  repeated string purposeTypes = 5;
+  repeated string gsStatusTypes = 6;
 }

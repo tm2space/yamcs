@@ -7,42 +7,40 @@ import java.time.LocalDateTime;
  */
 public class GSBooking {
     private int id;
-    private int providerId;
-    private String yamcsGsName;
+    private String provider;
+    private String satelliteId;
     private LocalDateTime startTime;
-    private LocalDateTime endTime;
-    private String purpose;
-    private String missionName;
-    private String satelliteName;
-    private BookingRuleType ruleType;
+    private LocalDateTime endTime; // computed field
+    private int durationMinutes;
+    private String passType; // enum from database
+    private String purpose; // enum from database
+    private String ruleType; // enum from database
     private Integer frequencyDays;
-    private BookingStatus status;
+    private String notes;
+    private String status; // enum from database
+    private String gsStatus; // enum from database
     private String requestedBy;
     private String approvedBy;
     private LocalDateTime approvedAt;
     private String rejectionReason;
-    private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Additional fields for display (from JOINs)
-    private String providerName;
-    private String providerType;
-
     public GSBooking() {
-        this.status = BookingStatus.pending;
-        this.ruleType = BookingRuleType.one_time;
+        this.status = "pending";
+        this.gsStatus = "scheduled";
+        this.ruleType = "one_time";
     }
 
     // Getters and Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
-    public int getProviderId() { return providerId; }
-    public void setProviderId(int providerId) { this.providerId = providerId; }
+    public String getProvider() { return provider; }
+    public void setProvider(String provider) { this.provider = provider; }
 
-    public String getYamcsGsName() { return yamcsGsName; }
-    public void setYamcsGsName(String yamcsGsName) { this.yamcsGsName = yamcsGsName; }
+    public String getSatelliteId() { return satelliteId; }
+    public void setSatelliteId(String satelliteId) { this.satelliteId = satelliteId; }
 
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
@@ -50,23 +48,27 @@ public class GSBooking {
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
 
+    public int getDurationMinutes() { return durationMinutes; }
+    public void setDurationMinutes(int durationMinutes) { this.durationMinutes = durationMinutes; }
+
+    public String getPassType() { return passType; }
+    public void setPassType(String passType) { this.passType = passType; }
+
     public String getPurpose() { return purpose; }
     public void setPurpose(String purpose) { this.purpose = purpose; }
 
-    public String getMissionName() { return missionName; }
-    public void setMissionName(String missionName) { this.missionName = missionName; }
 
-    public String getSatelliteName() { return satelliteName; }
-    public void setSatelliteName(String satelliteName) { this.satelliteName = satelliteName; }
-
-    public BookingRuleType getRuleType() { return ruleType; }
-    public void setRuleType(BookingRuleType ruleType) { this.ruleType = ruleType; }
+    public String getRuleType() { return ruleType; }
+    public void setRuleType(String ruleType) { this.ruleType = ruleType; }
 
     public Integer getFrequencyDays() { return frequencyDays; }
     public void setFrequencyDays(Integer frequencyDays) { this.frequencyDays = frequencyDays; }
 
-    public BookingStatus getStatus() { return status; }
-    public void setStatus(BookingStatus status) { this.status = status; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public String getGsStatus() { return gsStatus; }
+    public void setGsStatus(String gsStatus) { this.gsStatus = gsStatus; }
 
     public String getRequestedBy() { return requestedBy; }
     public void setRequestedBy(String requestedBy) { this.requestedBy = requestedBy; }
@@ -89,29 +91,18 @@ public class GSBooking {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    public String getProviderName() { return providerName; }
-    public void setProviderName(String providerName) { this.providerName = providerName; }
-
-    public String getProviderType() { return providerType; }
-    public void setProviderType(String providerType) { this.providerType = providerType; }
-
-    public long getDurationMinutes() {
-        if (startTime != null && endTime != null) {
-            return java.time.Duration.between(startTime, endTime).toMinutes();
-        }
-        return 0;
-    }
 
     @Override
     public String toString() {
         return "GSBooking{" +
                 "id=" + id +
-                ", providerId=" + providerId +
-                ", yamcsGsName='" + yamcsGsName + '\'' +
+                ", provider='" + provider + '\'' +
+                ", satelliteId='" + satelliteId + '\'' +
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
+                ", durationMinutes=" + durationMinutes +
                 ", purpose='" + purpose + '\'' +
-                ", status=" + status +
+                ", status='" + status + '\'' +
                 ", requestedBy='" + requestedBy + '\'' +
                 '}';
     }

@@ -25,16 +25,42 @@
         </td>
       </ng-container>
 
-      <!-- Ground Station Column -->
-      <ng-container cdkColumnDef="yamcsGsName">
-        <th mat-header-cell *cdkHeaderCellDef>Ground Station</th>
-        <td mat-cell *cdkCellDef="let booking">{{ booking.yamcsGsName }}</td>
+      <!-- End Time Column -->
+      <ng-container cdkColumnDef="endTime">
+        <th mat-header-cell *cdkHeaderCellDef>End Time</th>
+        <td mat-cell *cdkCellDef="let booking">
+          {{ formatDateTime(booking.endTime) }}
+        </td>
+      </ng-container>
+
+      <!-- Satellite Column -->
+      <ng-container cdkColumnDef="satelliteId">
+        <th mat-header-cell *cdkHeaderCellDef>Satellite</th>
+        <td mat-cell *cdkCellDef="let booking">{{ booking.satelliteId }}</td>
       </ng-container>
 
       <!-- Provider Column -->
-      <ng-container cdkColumnDef="providerName">
+      <ng-container cdkColumnDef="provider">
         <th mat-header-cell *cdkHeaderCellDef>Provider</th>
-        <td mat-cell *cdkCellDef="let booking">{{ booking.providerName }}</td>
+        <td mat-cell *cdkCellDef="let booking">{{ booking.provider }}</td>
+      </ng-container>
+
+      <!-- Pass Type Column -->
+      <ng-container cdkColumnDef="passType">
+        <th mat-header-cell *cdkHeaderCellDef>Pass Type</th>
+        <td mat-cell *cdkCellDef="let booking">
+          <span class="pass-type-badge">{{ booking.passType | titlecase }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Booking Status Column -->
+      <ng-container cdkColumnDef="gsStatus">
+        <th mat-header-cell *cdkHeaderCellDef>Booking Status</th>
+        <td mat-cell *cdkCellDef="let booking">
+          <span class="booking-status-badge" [class]="getBookingStatusClass(booking.gsStatus)">
+            {{ booking.gsStatus | titlecase }}
+          </span>
+        </td>
       </ng-container>
 
       <!-- Purpose Column -->

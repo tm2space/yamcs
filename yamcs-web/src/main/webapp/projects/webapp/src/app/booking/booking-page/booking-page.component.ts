@@ -29,7 +29,7 @@ export class BookingPageComponent implements OnInit {
   activeCount = 0;
   providerCount = 0;
 
-  displayedColumns = ['startTime', 'yamcsGsName', 'providerName', 'missionName', 'status'];
+  displayedColumns = ['startTime', 'satelliteId', 'provider', 'purpose', 'status'];
 
   constructor(
     private bookingService: BookingService,

@@ -6,26 +6,38 @@
     </td>
   </ng-container>
 
-  <ng-container cdkColumnDef="endTime">
-    <th mat-header-cell *cdkHeaderCellDef>End Time</th>
+  <ng-container cdkColumnDef="durationMinutes">
+    <th mat-header-cell *cdkHeaderCellDef>Duration</th>
     <td mat-cell *cdkCellDef="let booking" style="white-space: nowrap">
-      {{ booking.endTime | date:'MMM dd, HH:mm' }}
+      {{ booking.durationMinutes }} min
     </td>
   </ng-container>
 
-  <ng-container cdkColumnDef="yamcsGsName">
-    <th mat-header-cell *cdkHeaderCellDef>Ground Station</th>
-    <td mat-cell *cdkCellDef="let booking">{{ booking.yamcsGsName }}</td>
+  <ng-container cdkColumnDef="satelliteId">
+    <th mat-header-cell *cdkHeaderCellDef>Satellite</th>
+    <td mat-cell *cdkCellDef="let booking">{{ booking.satelliteId }}</td>
   </ng-container>
 
-  <ng-container cdkColumnDef="providerName">
+  <ng-container cdkColumnDef="provider">
     <th mat-header-cell *cdkHeaderCellDef>Provider</th>
-    <td mat-cell *cdkCellDef="let booking">{{ booking.providerName }}</td>
+    <td mat-cell *cdkCellDef="let booking">{{ booking.provider }}</td>
   </ng-container>
 
-  <ng-container cdkColumnDef="missionName">
-    <th mat-header-cell *cdkHeaderCellDef>Mission</th>
-    <td mat-cell *cdkCellDef="let booking">{{ booking.missionName || '-' }}</td>
+  <ng-container cdkColumnDef="purpose">
+    <th mat-header-cell *cdkHeaderCellDef>Purpose</th>
+    <td mat-cell *cdkCellDef="let booking">{{ booking.purpose | titlecase }}</td>
+  </ng-container>
+
+  <ng-container cdkColumnDef="passType">
+    <th mat-header-cell *cdkHeaderCellDef>Pass Type</th>
+    <td mat-cell *cdkCellDef="let booking">
+      <span class="pass-type-badge">{{ booking.passType | titlecase }}</span>
+    </td>
+  </ng-container>
+
+  <ng-container cdkColumnDef="requestedBy">
+    <th mat-header-cell *cdkHeaderCellDef>Requested By</th>
+    <td mat-cell *cdkCellDef="let booking">{{ booking.requestedBy }}</td>
   </ng-container>
 
   <ng-container cdkColumnDef="status">

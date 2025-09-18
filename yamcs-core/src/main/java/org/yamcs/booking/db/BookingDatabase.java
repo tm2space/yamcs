@@ -105,9 +105,8 @@ public class BookingDatabase {
     public List<GSBooking> getAllBookings() throws SQLException {
         List<GSBooking> bookings = new ArrayList<>();
         String sql = """
-            SELECT b.*, p.name as provider_name, p.type as provider_type
+            SELECT b.*
             FROM gs_bookings b
-            JOIN gs_providers p ON b.provider_id = p.id
             ORDER BY b.start_time DESC
             """;
 
@@ -126,9 +125,8 @@ public class BookingDatabase {
     public List<GSBooking> getPendingBookings() throws SQLException {
         List<GSBooking> bookings = new ArrayList<>();
         String sql = """
-            SELECT b.*, p.name as provider_name, p.type as provider_type
+            SELECT b.*
             FROM gs_bookings b
-            JOIN gs_providers p ON b.provider_id = p.id
             WHERE b.status = 'pending'
             ORDER BY b.start_time ASC
             """;
@@ -147,31 +145,31 @@ public class BookingDatabase {
 
     public GSBooking createBooking(GSBooking booking) throws SQLException {
         String sql = """
-            INSERT INTO gs_bookings (provider_id, yamcs_gs_name, start_time, end_time,
-                                   purpose, mission_name, satellite_name, rule_type,
-                                   frequency_days, requested_by, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?::booking_rule_type, ?, ?, ?)
-            RETURNING id
+            INSERT INTO gs_bookings (provider, satellite_id, start_time, duration_minutes,
+                                   pass_type, purpose, rule_type, frequency_days,
+                                   notes, requested_by)
+            VALUES (?, ?, ?, ?, ?::pass_type, ?::purpose_type, ?::booking_rule_type, ?, ?, ?)
+            RETURNING id, end_time
             """;
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, booking.getProviderId());
-            stmt.setString(2, booking.getYamcsGsName());
+            stmt.setString(1, booking.getProvider());
+            stmt.setString(2, booking.getSatelliteId());
             stmt.setTimestamp(3, Timestamp.valueOf(booking.getStartTime()));
-            stmt.setTimestamp(4, Timestamp.valueOf(booking.getEndTime()));
-            stmt.setString(5, booking.getPurpose());
-            stmt.setString(6, booking.getMissionName());
-            stmt.setString(7, booking.getSatelliteName());
-            stmt.setString(8, booking.getRuleType().toString());
-            stmt.setObject(9, booking.getFrequencyDays());
+            stmt.setInt(4, booking.getDurationMinutes());
+            stmt.setString(5, booking.getPassType());
+            stmt.setString(6, booking.getPurpose());
+            stmt.setString(7, booking.getRuleType());
+            stmt.setObject(8, booking.getFrequencyDays());
+            stmt.setString(9, booking.getNotes());
             stmt.setString(10, booking.getRequestedBy());
-            stmt.setString(11, booking.getNotes());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    booking.setId(rs.getInt(1));
+                    booking.setId(rs.getInt("id"));
+                    booking.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
                 }
             }
         }
@@ -282,16 +280,17 @@ public class BookingDatabase {
     private GSBooking mapBookingFromResultSet(ResultSet rs) throws SQLException {
         GSBooking booking = new GSBooking();
         booking.setId(rs.getInt("id"));
-        booking.setProviderId(rs.getInt("provider_id"));
-        booking.setYamcsGsName(rs.getString("yamcs_gs_name"));
+        booking.setProvider(rs.getString("provider"));
+        booking.setSatelliteId(rs.getString("satellite_id"));
         booking.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
         booking.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+        booking.setDurationMinutes(rs.getInt("duration_minutes"));
+        booking.setPassType(rs.getString("pass_type"));
         booking.setPurpose(rs.getString("purpose"));
-        booking.setMissionName(rs.getString("mission_name"));
-        booking.setSatelliteName(rs.getString("satellite_name"));
-        booking.setRuleType(BookingRuleType.valueOf(rs.getString("rule_type")));
+        booking.setRuleType(rs.getString("rule_type"));
         booking.setFrequencyDays(rs.getObject("frequency_days", Integer.class));
-        booking.setStatus(BookingStatus.valueOf(rs.getString("status")));
+        booking.setStatus(rs.getString("status"));
+        booking.setGsStatus(rs.getString("gs_status"));
         booking.setRequestedBy(rs.getString("requested_by"));
         booking.setApprovedBy(rs.getString("approved_by"));
         if (rs.getTimestamp("approved_at") != null) {
@@ -302,14 +301,94 @@ public class BookingDatabase {
         booking.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         booking.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
 
-        // Additional fields from JOIN
-        try {
-            booking.setProviderName(rs.getString("provider_name"));
-            booking.setProviderType(rs.getString("provider_type"));
-        } catch (SQLException e) {
-            // These fields might not be present in all queries
-        }
+        // Additional fields from JOIN - removed since we don't use provider name/type joins anymore
 
         return booking;
+    }
+
+    // Enum methods
+    public List<String> getPassTypes() throws SQLException {
+        List<String> types = new ArrayList<>();
+        String sql = "SELECT unnest(enum_range(NULL::pass_type))";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                types.add(rs.getString(1));
+            }
+        }
+
+        return types;
+    }
+
+    public List<String> getPurposeTypes() throws SQLException {
+        List<String> types = new ArrayList<>();
+        String sql = "SELECT unnest(enum_range(NULL::purpose_type))";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                types.add(rs.getString(1));
+            }
+        }
+
+        return types;
+    }
+
+    public List<String> getRuleTypes() throws SQLException {
+        List<String> types = new ArrayList<>();
+        String sql = "SELECT unnest(enum_range(NULL::booking_rule_type))";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                types.add(rs.getString(1));
+            }
+        }
+
+        return types;
+    }
+
+    public List<String> getStatusTypes() throws SQLException {
+        List<String> types = new ArrayList<>();
+        String sql = "SELECT unnest(enum_range(NULL::booking_status))";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                types.add(rs.getString(1));
+            }
+        }
+
+        return types;
+    }
+
+    public List<String> getGsStatusTypes() throws SQLException {
+        List<String> types = new ArrayList<>();
+        String sql = "SELECT unnest(enum_range(NULL::gs_status))";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                types.add(rs.getString(1));
+            }
+        }
+
+        return types;
+    }
+
+    // For now, return hardcoded provider types since we don't have gs_providers table populated
+    public List<String> getProviderTypes() throws SQLException {
+        return List.of("leafspace", "dhruva", "isro");
     }
 }

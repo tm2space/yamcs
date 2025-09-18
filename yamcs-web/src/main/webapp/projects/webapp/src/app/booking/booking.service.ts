@@ -18,37 +18,34 @@ export interface GSProvider {
 
 export interface GSBooking {
   id: number;
-  providerId: number;
-  yamcsGsName: string;
+  provider: string;
+  satelliteId: string;
   startTime: string;
-  endTime: string;
-  purpose: string;
-  missionName?: string;
-  satelliteName?: string;
-  ruleType: 'daily' | 'weekly' | 'monthly' | 'one_time';
+  endTime: string; // computed field
+  durationMinutes: number;
+  passType: string; // enum from database
+  purpose: string; // enum from database
+  ruleType: string; // enum from database
   frequencyDays?: number;
-  status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed';
+  notes?: string;
+  status: string; // enum from database
+  gsStatus: string; // enum from database
   requestedBy: string;
   approvedBy?: string;
   approvedAt?: string;
   rejectionReason?: string;
-  notes?: string;
   createdAt: string;
   updatedAt: string;
-  providerName?: string;
-  providerType?: string;
-  durationMinutes?: number;
 }
 
 export interface BookingRequest {
-  providerId: number;
-  yamcsGsName: string;
+  provider: string;
+  satelliteId: string;
   startTime: string;
-  endTime: string;
-  purpose: string;
-  missionName?: string;
-  satelliteName?: string;
-  ruleType: 'daily' | 'weekly' | 'monthly' | 'one_time';
+  durationMinutes: number;
+  passType: string; // enum from database
+  purpose: string; // enum from database
+  ruleType: string; // enum from database
   frequencyDays?: number;
   notes?: string;
 }
@@ -57,12 +54,28 @@ export interface ApprovalRequest {
   comments?: string;
 }
 
+export interface EnumValues {
+  providerTypes: string[];
+  ruleTypes: string[];
+  statusTypes: string[];
+  passTypes: string[];
+  purposeTypes: string[];
+  gsStatusTypes: string[];
+}
+
+// Remove this interface - gs_status is now part of GSBooking
+
 @Injectable({
   providedIn: 'root'
 })
 export class BookingService {
 
   constructor(private http: HttpClient, private yamcs: YamcsService) {}
+
+  // Enum methods
+  getEnumValues(): Observable<EnumValues> {
+    return this.http.get<EnumValues>(`${this.yamcs.yamcsClient.baseHref}api/booking/enums`);
+  }
 
   // Provider methods
   getProviders(): Observable<GSProvider[]> {
@@ -93,5 +106,10 @@ export class BookingService {
   rejectBooking(bookingId: number, reason: string): Observable<{status: string}> {
     const request: ApprovalRequest = { comments: reason };
     return this.http.post<{status: string}>(`${this.yamcs.yamcsClient.baseHref}api/booking/bookings/${bookingId}/reject`, request);
+  }
+
+  // Update booking gs_status
+  updateBookingGsStatus(bookingId: number, gsStatus: string): Observable<{status: string}> {
+    return this.http.put<{status: string}>(`${this.yamcs.yamcsClient.baseHref}api/booking/bookings/${bookingId}/gsstatus`, { gsStatus });
   }
 }

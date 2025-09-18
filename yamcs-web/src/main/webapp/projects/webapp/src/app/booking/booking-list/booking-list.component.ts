@@ -29,11 +29,14 @@ export class BookingListComponent implements OnInit {
   bookings: GSBooking[] = [];
   displayedColumns: string[] = [
     'startTime',
-    'yamcsGsName',
-    'providerName',
+    'satelliteId',
+    'provider',
+    'passType',
     'purpose',
+    'endTime',
     'requestedBy',
     'status',
+    'gsStatus',
     'actions'
   ];
 
@@ -67,6 +70,10 @@ export class BookingListComponent implements OnInit {
 
   getStatusClass(status: string): string {
     return `status-${status}`;
+  }
+
+  getBookingStatusClass(gsStatus: string): string {
+    return `booking-status-${gsStatus}`;
   }
 
   formatDateTime(dateTime: string): string {

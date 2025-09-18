@@ -15,8 +15,10 @@ export class PendingApprovalsComponent implements OnInit {
   pendingBookings: GSBooking[] = [];
   displayedColumns: string[] = [
     'startTime',
-    'yamcsGsName',
-    'providerName',
+    'satelliteId',
+    'provider',
+    'durationMinutes',
+    'passType',
     'purpose',
     'requestedBy',
     'actions'

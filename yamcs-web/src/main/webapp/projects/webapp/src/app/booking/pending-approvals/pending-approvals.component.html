@@ -20,17 +20,31 @@
         </td>
       </ng-container>
 
-      <ng-container cdkColumnDef="yamcsGsName">
-        <th mat-header-cell *cdkHeaderCellDef>Ground Station</th>
+      <ng-container cdkColumnDef="durationMinutes">
+        <th mat-header-cell *cdkHeaderCellDef>Duration</th>
         <td mat-cell *cdkCellDef="let booking">
-          {{ booking.yamcsGsName }}
+          {{ booking.durationMinutes }} min
         </td>
       </ng-container>
 
-      <ng-container cdkColumnDef="providerName">
+      <ng-container cdkColumnDef="satelliteId">
+        <th mat-header-cell *cdkHeaderCellDef>Satellite</th>
+        <td mat-cell *cdkCellDef="let booking">
+          {{ booking.satelliteId }}
+        </td>
+      </ng-container>
+
+      <ng-container cdkColumnDef="provider">
         <th mat-header-cell *cdkHeaderCellDef>Provider</th>
         <td mat-cell *cdkCellDef="let booking">
-          {{ booking.providerName }}
+          {{ booking.provider }}
+        </td>
+      </ng-container>
+
+      <ng-container cdkColumnDef="passType">
+        <th mat-header-cell *cdkHeaderCellDef>Pass Type</th>
+        <td mat-cell *cdkCellDef="let booking">
+          <span class="pass-type-badge">{{ booking.passType | titlecase }}</span>
         </td>
       </ng-container>
 

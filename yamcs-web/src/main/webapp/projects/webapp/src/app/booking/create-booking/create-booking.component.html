@@ -16,11 +16,28 @@
         <ya-select formControlName="providerId" [options]="providerOptions" />
       </ya-field>
 
-      <ya-field label="Start Date & Time">
+      <ya-field label="Satellite">
+        <input type="text" formControlName="satelliteName" readonly style="background-color: var(--ya-surface-bright);" />
+      </ya-field>
+
+      <ya-field label="Start Time">
         <ya-date-time-input formControlName="startDateTime" step="60" [showNow]="true" />
       </ya-field>
 
-      <ya-field label="Booking Rule">
+      <ya-field label="Duration (minutes)">
+        <input type="number" formControlName="durationMinutes" min="5" max="60" placeholder="15" />
+        <small>Typical pass duration is 5-20 minutes</small>
+      </ya-field>
+
+      <ya-field label="Pass Type">
+        <ya-select formControlName="passType" [options]="passTypeOptions" />
+      </ya-field>
+
+      <ya-field label="Purpose">
+        <ya-select formControlName="purpose" [options]="purposeOptions" />
+      </ya-field>
+
+      <ya-field label="Booking Type">
         <ya-select formControlName="ruleType" [options]="ruleTypeOptions" />
       </ya-field>
 
@@ -31,13 +48,27 @@
         <small>{{ getFrequencyNote() }}</small>
       </ya-field>
 
-      <ya-field label="Purpose">
-        <textarea formControlName="purpose" rows="3" required></textarea>
+      <ya-field label="Priority" *ngIf="showAdvancedOptions">
+        <ya-select formControlName="priority" [options]="priorityOptions" />
       </ya-field>
 
-      <ya-field label="Additional Notes">
-        <textarea formControlName="notes" rows="3"></textarea>
+      <ya-field label="Frequency Band" *ngIf="showAdvancedOptions">
+        <ya-select formControlName="frequencyBand" [options]="frequencyBandOptions" />
       </ya-field>
+
+      <ya-field label="Expected Data Volume (MB)" *ngIf="showAdvancedOptions">
+        <input type="number" formControlName="dataVolume" min="1" placeholder="100" />
+      </ya-field>
+
+      <ya-field label="Additional Requirements">
+        <textarea formControlName="notes" rows="2" placeholder="Any special requirements or configurations (optional)"></textarea>
+      </ya-field>
+
+      <div style="margin: 16px 0;">
+        <ya-button (click)="toggleAdvancedOptions()" appearance="link">
+          {{ showAdvancedOptions ? 'Hide' : 'Show' }} Advanced Options
+        </ya-button>
+      </div>
 
     </form>
 
@@ -47,7 +78,8 @@
       </div>
     </div>
 
-    <div class="ya-button-bar">
+
+    <div class="ya-button-bar" style="gap: 16px;">
       <ya-button (click)="onCancel()">CANCEL</ya-button>
       <ya-button
         appearance="primary"

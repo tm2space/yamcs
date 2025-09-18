@@ -23,27 +23,39 @@ interface DialogData {
 
     <mat-dialog-content>
       <form [formGroup]="approvalForm" class="ya-form">
-        <ya-field label="Booking Details">
+        <ya-field label="Pass Details">
           <div class="booking-details">
             <div class="detail-row">
-              <span class="label">Ground Station:</span>
-              <span>{{ data.booking.yamcsGsName }}</span>
+              <span class="label">Satellite:</span>
+              <span class="value">{{ data.booking.satelliteId }}</span>
             </div>
             <div class="detail-row">
               <span class="label">Provider:</span>
-              <span>{{ data.booking.providerName }}</span>
+              <span class="value">{{ data.booking.provider }}</span>
             </div>
             <div class="detail-row">
               <span class="label">Start Time:</span>
-              <span>{{ formatDateTime(data.booking.startTime) }}</span>
+              <span class="value">{{ formatDateTime(data.booking.startTime) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Duration:</span>
+              <span class="value">{{ data.booking.durationMinutes }} minutes</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Pass Type:</span>
+              <span class="value">{{ data.booking.passType | titlecase }}</span>
             </div>
             <div class="detail-row">
               <span class="label">Purpose:</span>
-              <span>{{ data.booking.purpose }}</span>
+              <span class="value">{{ data.booking.purpose | titlecase }}</span>
             </div>
             <div class="detail-row">
               <span class="label">Requested By:</span>
-              <span>{{ data.booking.requestedBy }}</span>
+              <span class="value">{{ data.booking.requestedBy }}</span>
+            </div>
+            <div class="detail-row" *ngIf="data.booking.notes">
+              <span class="label">Notes:</span>
+              <span class="value">{{ data.booking.notes }}</span>
             </div>
           </div>
         </ya-field>
@@ -70,19 +82,47 @@ interface DialogData {
   `,
   styles: [`
     .booking-details {
-      background-color: #f8f9fa;
-      padding: 12px;
+      background: var(--y-background-color-secondary);
+      border: 1px solid var(--y-border-color);
       border-radius: 4px;
-      border: 1px solid #e9ecef;
+      padding: 16px;
+      margin-bottom: 16px;
     }
+
     .detail-row {
       display: flex;
-      margin-bottom: 8px;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--y-border-color-light);
     }
-    .detail-row .label {
+
+    .detail-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .label {
       font-weight: 500;
-      min-width: 120px;
-      color: #6c757d;
+      color: var(--y-text-color-secondary);
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+
+    .value {
+      color: var(--y-text-color-primary);
+      text-align: right;
+      word-break: break-word;
+    }
+
+    mat-dialog-content {
+      padding: 24px !important;
+    }
+
+    mat-dialog-actions {
+      padding: 16px 24px !important;
+      gap: 8px;
     }
   `]
 })
