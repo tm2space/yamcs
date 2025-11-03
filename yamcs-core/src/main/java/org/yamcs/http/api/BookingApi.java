@@ -216,7 +216,11 @@ public class BookingApi extends AbstractBookingApi<Context> {
         if (service == null) {
             throw new RuntimeException("BookingService not available");
         }
-        return service.getDatabase();
+        BookingDatabase database = service.getDatabase();
+        if (database == null) {
+            throw new RuntimeException("Booking database not available. Please ensure PostgreSQL is running and configured properly.");
+        }
+        return database;
     }
 
     private ProviderInfo toProviderInfo(GSProvider provider) {

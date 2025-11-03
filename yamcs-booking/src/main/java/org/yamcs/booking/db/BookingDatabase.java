@@ -50,6 +50,10 @@ public class BookingDatabase {
         hikariConfig.setIdleTimeout(600000);
         hikariConfig.setMaxLifetime(1800000);
 
+        // Don't fail on initialization if database is not available
+        // This allows the service to start without PostgreSQL and retry later
+        hikariConfig.setInitializationFailTimeout(-1);
+
         this.dataSource = new HikariDataSource(hikariConfig);
 
         log.info("Database connection pool initialized for {}", jdbcUrl);

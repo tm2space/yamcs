@@ -24,8 +24,10 @@ public class BookingService extends AbstractYamcsService {
             log.info("Ground Station Booking Service initialized successfully");
 
         } catch (Exception e) {
-            log.error("Failed to initialize Booking Service", e);
-            throw new InitException("Failed to initialize Booking Service: " + e.getMessage(), e);
+            log.warn("Failed to initialize Booking Service database connection: {}. Service will start without database support.", e.getMessage());
+            log.warn("To enable booking functionality, ensure PostgreSQL is running and properly configured.");
+            database = null;
+            // Do not throw exception - allow service to start without database
         }
     }
 
@@ -53,8 +55,18 @@ public class BookingService extends AbstractYamcsService {
         log.info("Ground Station Booking Service stopped");
     }
 
+    /**
+     * Get the database instance. May return null if database is not available.
+     */
     public BookingDatabase getDatabase() {
         return database;
+    }
+
+    /**
+     * Check if database connection is available
+     */
+    public boolean isDatabaseAvailable() {
+        return database != null;
     }
 
     // Static method to get the service instance
