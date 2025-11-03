@@ -7,6 +7,7 @@ import {
   input,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   BackfillingSubscription,
@@ -28,7 +29,12 @@ import { SelectRangeDialogComponent } from '../select-range-dialog/select-range-
   templateUrl: './parameter-chart-tab.component.html',
   styleUrl: './parameter-chart-tab.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ParameterPlotComponent, ParameterSeriesComponent, WebappSdkModule],
+  imports: [
+    ParameterPlotComponent,
+    ParameterSeriesComponent,
+    WebappSdkModule,
+    MatProgressSpinnerModule,
+  ],
 })
 export class ParameterChartTabComponent implements OnInit, OnDestroy {
   qualifiedName = input.required<string>({ alias: 'parameter' });

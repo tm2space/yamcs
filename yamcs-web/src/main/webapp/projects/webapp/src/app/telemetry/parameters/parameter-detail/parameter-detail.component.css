@@ -46,3 +46,31 @@ span.pval {
 .mat-icon.unchecked {
   visibility: hidden;
 }
+
+span.last-known-value {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.time-ago {
+  color: #666;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.loading-text {
+  color: #666;
+  font-size: 14px;
+}
+
+.hex-value {
+  margin-left: 12px;
+  padding: 2px 8px;
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #1976d2;
+  white-space: nowrap;
+}

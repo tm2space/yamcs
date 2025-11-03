@@ -218,6 +218,9 @@
           @if ((parameter | parameterTypeForPath)?.unitSet; as unitSet) {
             {{ unitSet | units }}
           }
+          @if (shouldShowHex(value)) {
+            <span class="hex-value">{{ toHex(getNumericValue(value)) }}</span>
+          }
         </ya-expirable>
       </span>
       <br />
@@ -232,13 +235,48 @@
         <dt>Status</dt>
         <dd>{{ pval?.acquisitionStatus || "-" }}</dd>
         <dt>Raw value</dt>
-        <dd>{{ (pval?.rawValue | value) ?? "-" }}</dd>
+        <dd>
+          {{ (pval?.rawValue | value) ?? "-" }}
+          @if (pval && pval.rawValue && shouldShowHex(pval.rawValue)) {
+            <span class="hex-value">{{ toHex(getNumericValue(pval.rawValue)) }}</span>
+          }
+        </dd>
       </dl>
     }
   }
 }
 @if (!pval?.engValue) {
   <span style="white-space: nowrap">---</span>
+}
+
+<div class="section-divider">
+  <mat-divider />
+</div>
+<h4>Last known value</h4>
+@if (loadingLastKnown$ | async) {
+  <span class="loading-text">Loading...</span>
+}
+@if (!(loadingLastKnown$ | async)) {
+  @if (lastKnownSample$ | async; as sample) {
+    <dl class="dl-horizontal">
+      <dt>Value</dt>
+      <dd>
+        <span class="last-known-value">{{ sample.avg }}</span>
+        @if ((parameter | parameterTypeForPath)?.unitSet; as unitSet) {
+          {{ unitSet | units }}
+        }
+        @if (isIntegerParameter()) {
+          <span class="hex-value">{{ toHex(sample.avg) }}</span>
+        }
+      </dd>
+      <dt>Timestamp</dt>
+      <dd>
+        {{ sample.time | datetime }}
+      </dd>
+    </dl>
+  } @else {
+    <span style="white-space: nowrap">No historical data available</span>
+  }
 }
 
 @if (entry$ | async; as entry) {
