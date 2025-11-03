@@ -22,4 +22,17 @@ else
     fi
 fi
 
-cd yamcs-web/src/main/webapp && npm run build && cd - && ./run-example.sh simulation
+# Check for --all flag
+if [[ "$1" == "--all" ]]; then
+    # Build and install Yamcs modules to local Maven repository
+    echo "Building Yamcs modules..."
+    mvn clean install -DskipTests
+fi
+
+# Build web application
+echo "Building web application..."
+cd yamcs-web/src/main/webapp && npm install && npm run build && cd -
+
+# Run simulation example
+echo "Running simulation example..."
+./run-example.sh simulation
