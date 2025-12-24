@@ -16,3 +16,6 @@ server.lock
 
 # Environment variables
 .env
+
+# macOS
+.DS_Store
