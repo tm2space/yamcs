@@ -223,6 +223,7 @@ public class CfdpService extends AbstractFileTransferService implements StreamSu
         spec.addOption("entityIdLength", OptionType.INTEGER).withDefault(2);
         spec.addOption("sequenceNrLength", OptionType.INTEGER).withDefault(4);
         spec.addOption("maxPduSize", OptionType.INTEGER).withDefault(512);
+        spec.addOption("maxFileSize", OptionType.LONG).withDefault(100L * 1024 * 1024);
         spec.addOption("canChangePduSize", OptionType.BOOLEAN).withDefault(false);
         spec.addOption("pduSizePredefinedValues", OptionType.LIST).withDefault(Collections.emptyList())
                 .withElementType(OptionType.INTEGER);
