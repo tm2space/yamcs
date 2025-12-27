@@ -43,6 +43,28 @@
         (menuOpened)="switchProcessorMenuOpened()">
         {{ time$ | async | datetime }} ▾
       </ya-text-action>
+      @if (tZero$ | async) {
+        <ya-text-action
+          class="mission-timer"
+          [class.countdown]="(missionElapsed$ | async)! < 0"
+          matTooltip="Mission timer. Click to configure T-zero"
+          [matMenuTriggerFor]="missionTimerMenu">
+          {{ missionElapsed$ | async | missionTimer }} ▾
+        </ya-text-action>
+      } @else {
+        <ya-text-action
+          class="mission-timer not-set"
+          matTooltip="Click to set mission T-zero"
+          (click)="openSetTZeroDialog()">
+          T±000d:00h:00m:00s
+        </ya-text-action>
+      }
+      <ya-text-action
+        class="world-clocks"
+        matTooltip="View time in different timezones"
+        [matMenuTriggerFor]="timezonesMenu">
+        World Clocks ▾
+      </ya-text-action>
       @if (fullScreenMode$ | async) {
         <ya-icon-action
           class="icon-action"
@@ -206,4 +228,53 @@
       </button>
     }
   }
+</mat-menu>
+
+<mat-menu
+  #missionTimerMenu="matMenu"
+  class="ya-menu"
+  overlapTrigger="false"
+  xPosition="before"
+  yPosition="below">
+  <button mat-menu-item (click)="openSetTZeroDialog()">
+    <mat-icon>schedule</mat-icon>
+    Set T-zero
+  </button>
+  <button mat-menu-item (click)="clearTZero()">
+    <mat-icon>clear</mat-icon>
+    Clear T-zero
+  </button>
+</mat-menu>
+
+<mat-menu
+  #timezonesMenu="matMenu"
+  class="ya-menu timezone-menu"
+  overlapTrigger="false"
+  xPosition="before"
+  yPosition="below">
+  <div class="timezone-header">World Clocks</div>
+  <div class="timezone-item">
+    <span class="timezone-label">UTC</span>
+    <span class="timezone-value">{{ time$ | async | timezoneTime:'UTC' }}</span>
+  </div>
+  <div class="timezone-item">
+    <span class="timezone-label">IST (India)</span>
+    <span class="timezone-value">{{ time$ | async | timezoneTime:'Asia/Kolkata' }}</span>
+  </div>
+  <div class="timezone-item">
+    <span class="timezone-label">EST (New York)</span>
+    <span class="timezone-value">{{ time$ | async | timezoneTime:'America/New_York' }}</span>
+  </div>
+  <div class="timezone-item">
+    <span class="timezone-label">PST (Los Angeles)</span>
+    <span class="timezone-value">{{ time$ | async | timezoneTime:'America/Los_Angeles' }}</span>
+  </div>
+  <div class="timezone-item">
+    <span class="timezone-label">GMT (London)</span>
+    <span class="timezone-value">{{ time$ | async | timezoneTime:'Europe/London' }}</span>
+  </div>
+  <div class="timezone-item">
+    <span class="timezone-label">JST (Tokyo)</span>
+    <span class="timezone-value">{{ time$ | async | timezoneTime:'Asia/Tokyo' }}</span>
+  </div>
 </mat-menu>

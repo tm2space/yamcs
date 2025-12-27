@@ -5,6 +5,7 @@ import {
   Component,
   computed,
   ContentChild,
+  inject,
   input,
   OnDestroy,
 } from '@angular/core';
@@ -19,6 +20,9 @@ import { BaseComponent } from '../../abc/BaseComponent';
 import { ConnectionInfo, Processor, ProcessorSubscription } from '../../client';
 import { DateTimePipe } from '../../pipes/datetime.pipe';
 import { DurationPipe } from '../../pipes/duration.pipe';
+import { MissionTimerPipe } from '../../pipes/mission-timer.pipe';
+import { TimezoneTimePipe } from '../../pipes/timezone-time.pipe';
+import { MissionTimerService } from '../../services/mission-timer.service';
 import { YaIconAction } from '../icon-action/icon-action.component';
 import { YaPageButton } from '../page-button/page-button.component';
 import { YaTextAction } from '../text-action/text-action.component';
@@ -27,6 +31,7 @@ import {
   YaInstanceToolbarLabel,
 } from './instance-toolbar-label.directive';
 import { SessionExpiredDialogComponent } from './session-expired-dialog.component';
+import { SetTZeroDialogComponent } from './set-tzero-dialog.component';
 import { StartReplayDialogComponent } from './start-replay-dialog.component';
 
 @Component({
@@ -54,6 +59,8 @@ import { StartReplayDialogComponent } from './start-replay-dialog.component';
     MatMenuItem,
     MatMenuTrigger,
     MatTooltip,
+    MissionTimerPipe,
+    TimezoneTimePipe,
     YaIconAction,
     YaPageButton,
     YaTextAction,
@@ -92,10 +99,15 @@ export class YaInstanceToolbar extends BaseComponent implements OnDestroy {
   fullScreenMode$: Observable<boolean>;
   focusMode$: Observable<boolean>;
 
+  // Mission timer observables
+  tZero$: Observable<Date | null>;
+  missionElapsed$: Observable<number | null>;
+
   // For use in lazy dynamic population of Switch Processor menu.
   allProcessors$ = new BehaviorSubject<Processor[]>([]);
 
   private connectedSubscription: Subscription;
+  private missionTimerService = inject(MissionTimerService);
 
   constructor(
     private dialog: MatDialog,
@@ -134,6 +146,20 @@ export class YaInstanceToolbar extends BaseComponent implements OnDestroy {
     });
 
     this.connectionInfo$ = this.yamcs.connectionInfo$;
+
+    // Mission timer
+    this.tZero$ = this.missionTimerService.tZero$;
+    this.missionElapsed$ = this.missionTimerService.missionElapsed$;
+  }
+
+  openSetTZeroDialog() {
+    this.dialog.open(SetTZeroDialogComponent, {
+      width: '400px',
+    });
+  }
+
+  clearTZero() {
+    this.missionTimerService.clearTZero();
   }
 
   startReplay() {
