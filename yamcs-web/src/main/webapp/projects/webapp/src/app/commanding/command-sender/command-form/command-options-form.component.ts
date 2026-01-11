@@ -140,6 +140,14 @@ export class CommandOptionsForm implements OnInit, OnChanges {
         }
       }
     }
+    // Add booking ID if selected
+    const bookingControl = this.formGroup.controls['booking'];
+    if (bookingControl && bookingControl.value) {
+      const selected = this.bookings.find(b => b.id.toString() === bookingControl.value);
+      if (selected?.providerBookingId) {
+        extra['bookingId'] = { type: 'STRING', stringValue: selected.providerBookingId };
+      }
+    }
     return extra;
   }
 
