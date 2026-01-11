@@ -103,6 +103,11 @@ export class CommandOptionsForm implements OnInit, OnChanges {
     return this.selectedBooking;
   }
 
+  // Filter out bookingId from displayed options since it's handled by the booking selector
+  get displayedCommandOptions(): CommandOption[] {
+    return this.commandOptions.filter(opt => opt.id !== 'bookingId');
+  }
+
   ngOnChanges(): void {
     if (this.templateProvider) {
       for (const option of this.commandOptions || []) {

@@ -48,7 +48,7 @@
     </div>
   }
 
-  @for (extra of commandOptions; track extra) {
+  @for (extra of displayedCommandOptions; track extra) {
     @switch (extra.type) {
       @case ("BOOLEAN") {
         <ya-field [label]="extra.verboseName || extra.id">
