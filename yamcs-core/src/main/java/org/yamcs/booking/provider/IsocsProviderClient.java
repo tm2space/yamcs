@@ -270,7 +270,7 @@ public class IsocsProviderClient implements GsProviderClient {
         bookingBody.addProperty("gsabrac_id", gsabracId);
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/centralgroundstation/dev/portal/api/v1/central/mock/bookings"))
+                .uri(URI.create(baseUrl + "/centralgroundstation/dev/portal/api/v1/central/bookings"))
                 .header("Authorization", "Bearer " + accessToken)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(bookingBody)))
