@@ -54,22 +54,30 @@ public class IsocsProviderClient implements GsProviderClient {
 
     @Override
     public synchronized void connect() throws IOException, InterruptedException {
-        log.info("Logging in to ISOCS API at {}", baseUrl);
+        String url = baseUrl + "/userservice/dev/api/v1/user/login";
+        log.info("[ISOCS] connect - POST {}", url);
 
         JsonObject loginBody = new JsonObject();
         loginBody.addProperty("sm_email", email);
-        loginBody.addProperty("sm_password", password);
+        loginBody.addProperty("sm_password", "***"); // Don't log actual password
+        log.debug("[ISOCS] connect - Request payload: email={}", email);
+
+        JsonObject actualLoginBody = new JsonObject();
+        actualLoginBody.addProperty("sm_email", email);
+        actualLoginBody.addProperty("sm_password", password);
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/userservice/dev/api/v1/user/login"))
+                .uri(URI.create(url))
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(loginBody)))
+                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(actualLoginBody)))
                 .timeout(Duration.ofSeconds(30))
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        log.info("[ISOCS] connect - Response status: {}", response.statusCode());
 
         if (response.statusCode() != 200) {
+            log.error("[ISOCS] connect - Login failed: {} - {}", response.statusCode(), response.body());
             throw new IOException("ISOCS login failed: " + response.statusCode() + " - " + response.body());
         }
 
@@ -77,7 +85,7 @@ public class IsocsProviderClient implements GsProviderClient {
         this.accessToken = responseBody.get("accessToken").getAsString();
         this.tokenExpiry = System.currentTimeMillis() + (23 * 60 * 60 * 1000); // 23 hours
 
-        log.info("Successfully logged in to ISOCS API");
+        log.info("[ISOCS] connect - Successfully authenticated, token expires in 23 hours");
     }
 
     private synchronized void ensureAuthenticated() throws IOException, InterruptedException {
@@ -90,17 +98,26 @@ public class IsocsProviderClient implements GsProviderClient {
     public List<ProviderSatellite> listSatellites() throws IOException, InterruptedException {
         ensureAuthenticated();
 
+        String url = baseUrl + "/centralsatellite/dev/portal/api/v1/central/gsaas/satellites";
+        log.info("[ISOCS] listSatellites - GET {}", url);
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/centralsatellite/dev/portal/api/v1/central/gsaas/satellites"))
+                .uri(URI.create(url))
                 .header("Authorization", "Bearer " + accessToken)
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        log.info("[ISOCS] listSatellites - Response status: {}", response.statusCode());
 
         if (response.statusCode() != 200) {
+            log.error("[ISOCS] listSatellites - Failed: {} - {}", response.statusCode(), response.body());
             throw new IOException("Failed to list satellites: " + response.statusCode() + " - " + response.body());
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("[ISOCS] listSatellites - Response body: {}", response.body());
         }
 
         List<ProviderSatellite> satellites = new ArrayList<>();
@@ -116,6 +133,7 @@ public class IsocsProviderClient implements GsProviderClient {
             satellites.add(satellite);
         }
 
+        log.info("[ISOCS] listSatellites - Returned {} satellites", satellites.size());
         return satellites;
     }
 
@@ -123,17 +141,26 @@ public class IsocsProviderClient implements GsProviderClient {
     public List<ProviderGroundStation> listGroundStations() throws IOException, InterruptedException {
         ensureAuthenticated();
 
+        String url = baseUrl + "/centralgroundstation/dev/portal/api/v1/central/gsaas/groundstations";
+        log.info("[ISOCS] listGroundStations - GET {}", url);
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/centralgroundstation/dev/portal/api/v1/central/gsaas/groundstations"))
+                .uri(URI.create(url))
                 .header("Authorization", "Bearer " + accessToken)
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        log.info("[ISOCS] listGroundStations - Response status: {}", response.statusCode());
 
         if (response.statusCode() != 200) {
+            log.error("[ISOCS] listGroundStations - Failed: {} - {}", response.statusCode(), response.body());
             throw new IOException("Failed to list ground stations: " + response.statusCode() + " - " + response.body());
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("[ISOCS] listGroundStations - Response body: {}", response.body());
         }
 
         List<ProviderGroundStation> groundStations = new ArrayList<>();
@@ -153,6 +180,7 @@ public class IsocsProviderClient implements GsProviderClient {
             groundStations.add(groundStation);
         }
 
+        log.info("[ISOCS] listGroundStations - Returned {} ground stations", groundStations.size());
         return groundStations;
     }
 
@@ -160,17 +188,26 @@ public class IsocsProviderClient implements GsProviderClient {
     public List<ProviderActivityScope> listActivityScopes(String satelliteId) throws IOException, InterruptedException {
         ensureAuthenticated();
 
+        String url = baseUrl + "/centralgroundstation/dev/portal/api/v1/central/gsaas/activityscopes/" + satelliteId;
+        log.info("[ISOCS] listActivityScopes - GET {} (satelliteId={})", url, satelliteId);
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/centralgroundstation/dev/portal/api/v1/central/gsaas/activityscopes/" + satelliteId))
+                .uri(URI.create(url))
                 .header("Authorization", "Bearer " + accessToken)
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        log.info("[ISOCS] listActivityScopes - Response status: {}", response.statusCode());
 
         if (response.statusCode() != 200) {
+            log.error("[ISOCS] listActivityScopes - Failed: {} - {}", response.statusCode(), response.body());
             throw new IOException("Failed to get activity scopes: " + response.statusCode() + " - " + response.body());
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("[ISOCS] listActivityScopes - Response body: {}", response.body());
         }
 
         List<ProviderActivityScope> activityScopes = new ArrayList<>();
@@ -189,6 +226,7 @@ public class IsocsProviderClient implements GsProviderClient {
             activityScopes.add(activityScope);
         }
 
+        log.info("[ISOCS] listActivityScopes - Returned {} activity scopes for satelliteId={}", activityScopes.size(), satelliteId);
         return activityScopes;
     }
 
@@ -201,6 +239,9 @@ public class IsocsProviderClient implements GsProviderClient {
                 baseUrl, gsId, satelliteId, spbasId,
                 startDate.format(DATE_FORMAT), endDate.format(DATE_FORMAT));
 
+        log.info("[ISOCS] listContacts - GET {} (gsId={}, satelliteId={}, spbasId={}, startDate={}, endDate={})",
+                url, gsId, satelliteId, spbasId, startDate, endDate);
+
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Authorization", "Bearer " + accessToken)
@@ -209,9 +250,15 @@ public class IsocsProviderClient implements GsProviderClient {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        log.info("[ISOCS] listContacts - Response status: {}", response.statusCode());
 
         if (response.statusCode() != 200) {
+            log.error("[ISOCS] listContacts - Failed: {} - {}", response.statusCode(), response.body());
             throw new IOException("Failed to list contacts: " + response.statusCode() + " - " + response.body());
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("[ISOCS] listContacts - Response body: {}", response.body());
         }
 
         List<ProviderContact> contacts = new ArrayList<>();
@@ -255,6 +302,8 @@ public class IsocsProviderClient implements GsProviderClient {
             contacts.add(c);
         }
 
+        log.info("[ISOCS] listContacts - Returned {} contacts (deduplicated) for gsId={}, satelliteId={}, dateRange={} to {}",
+                contacts.size(), gsId, satelliteId, startDate, endDate);
         return contacts;
     }
 
@@ -263,14 +312,19 @@ public class IsocsProviderClient implements GsProviderClient {
             throws IOException, InterruptedException {
         ensureAuthenticated();
 
+        String url = baseUrl + "/centralgroundstation/dev/portal/api/v1/central/bookings";
+
         JsonObject bookingBody = new JsonObject();
         bookingBody.addProperty("gs_id", gsId);
         bookingBody.addProperty("satellite_id", satelliteId);
         bookingBody.addProperty("gs_visibility_id", gsVisibilityId);
         bookingBody.addProperty("gsabrac_id", gsabracId);
 
+        log.info("[ISOCS] reserveContact - POST {}", url);
+        log.info("[ISOCS] reserveContact - Request payload: {}", gson.toJson(bookingBody));
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/centralgroundstation/dev/portal/api/v1/central/bookings"))
+                .uri(URI.create(url))
                 .header("Authorization", "Bearer " + accessToken)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(bookingBody)))
@@ -278,10 +332,14 @@ public class IsocsProviderClient implements GsProviderClient {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        log.info("[ISOCS] reserveContact - Response status: {}", response.statusCode());
 
         if (response.statusCode() != 200 && response.statusCode() != 201) {
+            log.error("[ISOCS] reserveContact - Failed: {} - {}", response.statusCode(), response.body());
             throw new IOException("Failed to reserve contact: " + response.statusCode() + " - " + response.body());
         }
+
+        log.info("[ISOCS] reserveContact - Response body: {}", response.body());
 
         JsonObject responseBody = JsonParser.parseString(response.body()).getAsJsonObject();
         ProviderBooking booking = new ProviderBooking();
@@ -360,11 +418,16 @@ public class IsocsProviderClient implements GsProviderClient {
     public boolean cancelReservation(String satellitePassBookingId) throws IOException, InterruptedException {
         ensureAuthenticated();
 
+        String url = baseUrl + "/centralgroundstation/dev/portal/api/v1/central/bookings/cancel";
+
         JsonObject cancelBody = new JsonObject();
         cancelBody.addProperty("satellite_pass_booking_id", satellitePassBookingId);
 
+        log.info("[ISOCS] cancelReservation - POST {}", url);
+        log.info("[ISOCS] cancelReservation - Request payload: {}", gson.toJson(cancelBody));
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/centralgroundstation/dev/portal/api/v1/central/bookings/cancel"))
+                .uri(URI.create(url))
                 .header("Authorization", "Bearer " + accessToken)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(cancelBody)))
@@ -372,13 +435,15 @@ public class IsocsProviderClient implements GsProviderClient {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        log.info("[ISOCS] cancelReservation - Response status: {}", response.statusCode());
 
         if (response.statusCode() != 200) {
-            log.error("Failed to cancel reservation: {} - {}", response.statusCode(), response.body());
+            log.error("[ISOCS] cancelReservation - Failed: {} - {}", response.statusCode(), response.body());
             return false;
         }
 
-        log.info("Successfully cancelled reservation: {}", satellitePassBookingId);
+        log.info("[ISOCS] cancelReservation - Response body: {}", response.body());
+        log.info("[ISOCS] cancelReservation - Successfully cancelled reservation: {}", satellitePassBookingId);
         return true;
     }
 
@@ -386,17 +451,26 @@ public class IsocsProviderClient implements GsProviderClient {
     public List<ProviderBooking> listBookings() throws IOException, InterruptedException {
         ensureAuthenticated();
 
+        String url = baseUrl + "/centralgroundstation/dev/portal/api/v1/central/gsaas/bookings";
+        log.info("[ISOCS] listBookings - GET {}", url);
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/centralgroundstation/dev/portal/api/v1/central/gsaas/bookings"))
+                .uri(URI.create(url))
                 .header("Authorization", "Bearer " + accessToken)
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        log.info("[ISOCS] listBookings - Response status: {}", response.statusCode());
 
         if (response.statusCode() != 200) {
+            log.error("[ISOCS] listBookings - Failed: {} - {}", response.statusCode(), response.body());
             throw new IOException("Failed to list bookings: " + response.statusCode() + " - " + response.body());
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("[ISOCS] listBookings - Response body: {}", response.body());
         }
 
         List<ProviderBooking> bookings = new ArrayList<>();
@@ -423,6 +497,7 @@ public class IsocsProviderClient implements GsProviderClient {
             bookings.add(booking);
         }
 
+        log.info("[ISOCS] listBookings - Returned {} bookings", bookings.size());
         return bookings;
     }
 }
