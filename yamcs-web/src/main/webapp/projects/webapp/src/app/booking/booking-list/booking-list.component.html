@@ -17,6 +17,16 @@
 
   <ya-panel>
     <table mat-table [dataSource]="bookings" class="ya-data-table expand">
+      <!-- Booking ID Column -->
+      <ng-container cdkColumnDef="providerBookingId">
+        <th mat-header-cell *cdkHeaderCellDef>Booking ID</th>
+        <td mat-cell *cdkCellDef="let booking">
+          <span class="booking-id">
+            {{ booking.providerBookingId || '-' }}
+          </span>
+        </td>
+      </ng-container>
+
       <!-- Start Time Column -->
       <ng-container cdkColumnDef="startTime">
         <th mat-header-cell *cdkHeaderCellDef>Start Time</th>
@@ -42,37 +52,25 @@
       <!-- Provider Column -->
       <ng-container cdkColumnDef="provider">
         <th mat-header-cell *cdkHeaderCellDef>Provider</th>
-        <td mat-cell *cdkCellDef="let booking">{{ booking.provider }}</td>
+        <td mat-cell *cdkCellDef="let booking">{{ booking.provider | titlecase }}</td>
       </ng-container>
 
-      <!-- Pass Type Column -->
-      <ng-container cdkColumnDef="passType">
-        <th mat-header-cell *cdkHeaderCellDef>Pass Type</th>
+      <!-- Max Elevation Column -->
+      <ng-container cdkColumnDef="maxElevation">
+        <th mat-header-cell *cdkHeaderCellDef>Max Elevation</th>
         <td mat-cell *cdkCellDef="let booking">
-          <span class="pass-type-badge">{{ booking.passType | titlecase }}</span>
+          {{ booking.maxElevation ? booking.maxElevation.toFixed(1) + '°' : '-' }}
         </td>
       </ng-container>
 
       <!-- Booking Status Column -->
       <ng-container cdkColumnDef="gsStatus">
-        <th mat-header-cell *cdkHeaderCellDef>Booking Status</th>
+        <th mat-header-cell *cdkHeaderCellDef>GS Status</th>
         <td mat-cell *cdkCellDef="let booking">
           <span class="booking-status-badge" [class]="getBookingStatusClass(booking.gsStatus)">
             {{ booking.gsStatus | titlecase }}
           </span>
         </td>
-      </ng-container>
-
-      <!-- Purpose Column -->
-      <ng-container cdkColumnDef="purpose">
-        <th mat-header-cell *cdkHeaderCellDef>Purpose</th>
-        <td mat-cell *cdkCellDef="let booking">{{ booking.purpose }}</td>
-      </ng-container>
-
-      <!-- Requested By Column -->
-      <ng-container cdkColumnDef="requestedBy">
-        <th mat-header-cell *cdkHeaderCellDef>Requested By</th>
-        <td mat-cell *cdkCellDef="let booking">{{ booking.requestedBy }}</td>
       </ng-container>
 
       <!-- Status Column -->

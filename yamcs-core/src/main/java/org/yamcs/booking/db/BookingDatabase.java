@@ -151,8 +151,11 @@ public class BookingDatabase {
         String sql = """
             INSERT INTO gs_bookings (provider, satellite_id, start_time, duration_minutes,
                                    pass_type, purpose, rule_type, frequency_days,
-                                   notes, requested_by)
-            VALUES (?, ?, ?, ?, ?::pass_type, ?::purpose_type, ?::booking_rule_type, ?, ?, ?)
+                                   notes, requested_by, status, gs_status,
+                                   provider_satellite_id, provider_gs_id, provider_contact_id,
+                                   provider_booking_id, provider_metadata, max_elevation)
+            VALUES (?, ?, ?, ?, ?::pass_type, ?::purpose_type, ?::booking_rule_type, ?, ?, ?,
+                    ?::booking_status, ?::gs_status, ?, ?, ?, ?, ?::jsonb, ?)
             RETURNING id, end_time
             """;
 
@@ -169,6 +172,16 @@ public class BookingDatabase {
             stmt.setObject(8, booking.getFrequencyDays());
             stmt.setString(9, booking.getNotes());
             stmt.setString(10, booking.getRequestedBy());
+            stmt.setString(11, booking.getStatus() != null ? booking.getStatus() : "pending");
+            stmt.setString(12, booking.getGsStatus() != null ? booking.getGsStatus() : "scheduled");
+
+            // Generic provider fields
+            stmt.setString(13, booking.getProviderSatelliteId());
+            stmt.setString(14, booking.getProviderGsId());
+            stmt.setString(15, booking.getProviderContactId());
+            stmt.setString(16, booking.getProviderBookingId());
+            stmt.setString(17, booking.getProviderMetadata());
+            stmt.setObject(18, booking.getMaxElevation());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -305,7 +318,13 @@ public class BookingDatabase {
         booking.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         booking.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
 
-        // Additional fields from JOIN - removed since we don't use provider name/type joins anymore
+        // Provider-specific fields
+        booking.setProviderSatelliteId(rs.getString("provider_satellite_id"));
+        booking.setProviderGsId(rs.getString("provider_gs_id"));
+        booking.setProviderContactId(rs.getString("provider_contact_id"));
+        booking.setProviderBookingId(rs.getString("provider_booking_id"));
+        booking.setProviderMetadata(rs.getString("provider_metadata"));
+        booking.setMaxElevation(rs.getObject("max_elevation", Double.class));
 
         return booking;
     }

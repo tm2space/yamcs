@@ -1,0 +1,814 @@
+{
+	"info": {
+		"_postman_id": "295a1486-f355-4e08-b0be-971b16134c66",
+		"name": "ISOCS-GSaaS-APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2437797"
+	},
+	"item": [
+		{
+			"name": "List Satellites",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON\r",
+							"var responseBody = pm.response.json();\r",
+							" \r",
+							"// Update environment variable with a specific property from the response\r",
+							"if (responseBody.data !== undefined) {\r",
+							"    // Set accessToken in the current environment\r",
+							"    pm.environment.set(\"satellite_id\", responseBody.data.result[0].satellite_id);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{DemoUrl}}/centralsatellite/dev/portal/api/v1/central/gsaas/satellites",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralsatellite",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"gsaas",
+						"satellites"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List GroundStations",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON\r",
+							"var responseBody = pm.response.json();\r",
+							" \r",
+							"// Update environment variable with a specific property from the response\r",
+							"if (responseBody.data !== undefined) {\r",
+							"    // Set accessToken in the current environment\r",
+							"    pm.environment.set(\"gs_id\", responseBody.data[0].gs_id);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{DemoUrl}}/centralgroundstation/dev/portal/api/v1/central/gsaas/groundstations",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralgroundstation",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"gsaas",
+						"groundstations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Activity Scopes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON\r",
+							"var responseBody = pm.response.json();\r",
+							" \r",
+							"// Update environment variable with a specific property from the response\r",
+							"if (responseBody.data !== undefined) {\r",
+							"    // Set accessToken in the current environment\r",
+							"    pm.environment.set(\"spbas_id\", responseBody.data[0].spbas_id);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{DemoUrl}}/centralgroundstation/dev/portal/api/v1/central/gsaas/activityscopes/{{satellite_id}}",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralgroundstation",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"gsaas",
+						"activityscopes",
+						"{{satellite_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Set TLE",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON\r",
+							"var responseBody = pm.response.json();\r",
+							" \r",
+							"// Update environment variable with a specific property from the response\r",
+							"if (responseBody.accessToken !== undefined) {\r",
+							"    // Set accessToken in the current environment\r",
+							"    pm.environment.set(\"accessToken\", responseBody.accessToken);\r",
+							" \r",
+							"    // Set refreshToken in the current environment\r",
+							"    pm.environment.set(\"refreshToken\", responseBody.refreshToken);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJEaHJ1dmEgU3BhY2U6IElTT0NTIEFwcGxpY2F0aW9uIiwic3ViIjoiMDE5YjRmMjQtODk3OC03NjFjLTllYTMtYzNiM2VmMzA1YzQ5Iiwic21fbWVtYl9pZCI6IjAxOWI0ZjI0LTg5NzgtNzYxYy05ZWEzLWMzYjNlZjMwNWM0OSIsImF1ZCI6Imh0dHBzOi8vaXNvY3NhcHAuZGhydXZhc3BhY2UuY29tLyIsImlhdCI6MTc2NjU2OTYyOCwibmJmIjoxNzY2NTY5NjI4LCJleHAiOjE3NjY2NTYwMjgsIm5hbWUiOiJGdWxsIG5hbWUiLCJnaXZlbl9uYW1lIjp7ImRlY3J5cHRlZE1lc3NhZ2UiOiJvcmJpdCJ9LCJtaWRkbGVfbmFtZSI6eyJkZWNyeXB0ZWRNZXNzYWdlIjoiYWlkIn0sImZhbWlseV9uYW1lIjp7ImRlY3J5cHRlZE1lc3NhZ2UiOiJkZW1vIn0sInpvbmVpbmZvIjoidXRjIiwibG9jYWxlIjoiZW4tSU4iLCJub25jZSI6IjAxOWI0ZmMxLTUyYjQtN2UwYi05OTM1LTNhMjc3YzFlZGVmZCIsInJvbGVzIjoiZ3NicGFfYXBpX2FjY291bnQiLCJqdGkiOiIwMTliNGZjMS01MmIwLTdmYWQtOTA1MC05MTNlZjA1MjRjMjYiLCJvcmdfaWQiOiI0NzlhMzZjNi00M2IzLTQ4ZDEtODQ0ZC04NTc3NjcxOWMyNTkiLCJvcmdfbmFtZSI6bnVsbCwidGltZXpvbmUiOiJ1dGMifQ.2r67mXTiL3v8wX0k8bEzn3f-MDhUvxPNFaJNmFtULC1lbx-VKx3C8isejcC9cL1tR2JRNW_U657qjAI5A3Iwww",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "tleFile",
+							"type": "file",
+							"src": "/C:/MinfyWorkspace/2406tle.txt"
+						},
+						{
+							"key": "metadata",
+							"value": "{\"satellite_id\": \"01977a19-3b0d-766a-bcfb-75c76175b359\"}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{DemoUrl}}/centralsatellite/dev/portal/api/v1/central/tle",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralsatellite",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"tle"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Tle By Sat_Id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON\r",
+							"var responseBody = pm.response.json();\r",
+							" \r",
+							"// Update environment variable with a specific property from the response\r",
+							"if (responseBody.accessToken !== undefined) {\r",
+							"    // Set accessToken in the current environment\r",
+							"    pm.environment.set(\"accessToken\", responseBody.accessToken);\r",
+							" \r",
+							"    // Set refreshToken in the current environment\r",
+							"    pm.environment.set(\"refreshToken\", responseBody.refreshToken);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{DemoUrl}}/centralsatellite/dev/portal/api/v1/central/gsaas/satellitetle/019b974f-9675-7fe4-a184-c7f328c2e184",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralsatellite",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"gsaas",
+						"satellitetle",
+						"019b974f-9675-7fe4-a184-c7f328c2e184"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Contacts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON\r",
+							"var responseBody = pm.response.json();\r",
+							" \r",
+							"// Update environment variable with a specific property from the response\r",
+							"if (responseBody.data !== undefined) {\r",
+							"    // Set accessToken in the current environment\r",
+							"    pm.environment.set(\"gs_visibility_id\", responseBody.data[0].gs_visibility_id);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{DemoUrl}}/centralgroundstation/dev/portal/api/v1/central/visibility/{{gs_id}}/{{satellite_id}}/{{spbas_id}}?start=2026-01-08&end=2026-01-10",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralgroundstation",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"visibility",
+						"{{gs_id}}",
+						"{{satellite_id}}",
+						"{{spbas_id}}"
+					],
+					"query": [
+						{
+							"key": "start",
+							"value": "2026-01-08"
+						},
+						{
+							"key": "end",
+							"value": "2026-01-10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Reserved Contacts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON\r",
+							"var responseBody = pm.response.json();\r",
+							" \r",
+							"// Update environment variable with a specific property from the response\r",
+							"if (responseBody.accessToken !== undefined) {\r",
+							"    // Set accessToken in the current environment\r",
+							"    pm.environment.set(\"accessToken\", responseBody.accessToken);\r",
+							" \r",
+							"    // Set refreshToken in the current environment\r",
+							"    pm.environment.set(\"refreshToken\", responseBody.refreshToken);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{DemoUrl}}/centralgroundstation/dev/portal/api/v1/central/gsaas/bookings",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralgroundstation",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"gsaas",
+						"bookings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reserve Contact",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON\r",
+							"var responseBody = pm.response.json();\r",
+							" \r",
+							"// Update environment variable with a specific property from the response\r",
+							"if (responseBody.accessToken !== undefined) {\r",
+							"    // Set accessToken in the current environment\r",
+							"    pm.environment.set(\"accessToken\", responseBody.accessToken);\r",
+							" \r",
+							"    // Set refreshToken in the current environment\r",
+							"    pm.environment.set(\"refreshToken\", responseBody.refreshToken);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"gs_id\": \"{{gs_id}}\",\r\n\"satellite_id\": \"{{satellite_id}}\",\r\n\"gs_visibility_id\": \"{{gs_visibility_id}}\",\r\n\"gsabrac_id\": \"{{gsabrac_id}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DemoUrl}}/centralgroundstation/dev/portal/api/v1/central/mock/bookings",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralgroundstation",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"mock",
+						"bookings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reserved Contact by Id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON\r",
+							"var responseBody = pm.response.json();\r",
+							" \r",
+							"// Update environment variable with a specific property from the response\r",
+							"if (responseBody.accessToken !== undefined) {\r",
+							"    // Set accessToken in the current environment\r",
+							"    pm.environment.set(\"accessToken\", responseBody.accessToken);\r",
+							" \r",
+							"    // Set refreshToken in the current environment\r",
+							"    pm.environment.set(\"refreshToken\", responseBody.refreshToken);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJEaHJ1dmEgU3BhY2U6IElTT0NTIEFwcGxpY2F0aW9uIiwic3ViIjoiMDE5YjRmMjQtODk3OC03NjFjLTllYTMtYzNiM2VmMzA1YzQ5Iiwic21fbWVtYl9pZCI6IjAxOWI0ZjI0LTg5NzgtNzYxYy05ZWEzLWMzYjNlZjMwNWM0OSIsImF1ZCI6Imh0dHBzOi8vaXNvY3NhcHAuZGhydXZhc3BhY2UuY29tLyIsImlhdCI6MTc2NjU2OTYyOCwibmJmIjoxNzY2NTY5NjI4LCJleHAiOjE3NjY2NTYwMjgsIm5hbWUiOiJGdWxsIG5hbWUiLCJnaXZlbl9uYW1lIjp7ImRlY3J5cHRlZE1lc3NhZ2UiOiJvcmJpdCJ9LCJtaWRkbGVfbmFtZSI6eyJkZWNyeXB0ZWRNZXNzYWdlIjoiYWlkIn0sImZhbWlseV9uYW1lIjp7ImRlY3J5cHRlZE1lc3NhZ2UiOiJkZW1vIn0sInpvbmVpbmZvIjoidXRjIiwibG9jYWxlIjoiZW4tSU4iLCJub25jZSI6IjAxOWI0ZmMxLTUyYjQtN2UwYi05OTM1LTNhMjc3YzFlZGVmZCIsInJvbGVzIjoiZ3NicGFfYXBpX2FjY291bnQiLCJqdGkiOiIwMTliNGZjMS01MmIwLTdmYWQtOTA1MC05MTNlZjA1MjRjMjYiLCJvcmdfaWQiOiI0NzlhMzZjNi00M2IzLTQ4ZDEtODQ0ZC04NTc3NjcxOWMyNTkiLCJvcmdfbmFtZSI6bnVsbCwidGltZXpvbmUiOiJ1dGMifQ.2r67mXTiL3v8wX0k8bEzn3f-MDhUvxPNFaJNmFtULC1lbx-VKx3C8isejcC9cL1tR2JRNW_U657qjAI5A3Iwww",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{DemoUrl}}/centralgroundstation/dev/portal/api/v1/central/gsaas/groundstations/bookings/019b4feb-6db4-74a9-94b2-5d3ede42f663",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralgroundstation",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"gsaas",
+						"groundstations",
+						"bookings",
+						"019b4feb-6db4-74a9-94b2-5d3ede42f663"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cancel Reserved Contact",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON\r",
+							"var responseBody = pm.response.json();\r",
+							" \r",
+							"// Update environment variable with a specific property from the response\r",
+							"if (responseBody.accessToken !== undefined) {\r",
+							"    // Set accessToken in the current environment\r",
+							"    pm.environment.set(\"accessToken\", responseBody.accessToken);\r",
+							" \r",
+							"    // Set refreshToken in the current environment\r",
+							"    pm.environment.set(\"refreshToken\", responseBody.refreshToken);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJEaHJ1dmEgU3BhY2U6IElTT0NTIEFwcGxpY2F0aW9uIiwic3ViIjoiMDE5NzdjYzMtZDYxMS03M2IzLWJmZTQtOGFlY2YwZGYxMGVkIiwic21fbWVtYl9pZCI6IjAxOTc3Y2MzLWQ2MTEtNzNiMy1iZmU0LThhZWNmMGRmMTBlZCIsImF1ZCI6Imh0dHBzOi8vaXNvY3NhcHAuZGhydXZhc3BhY2UuY29tLyIsImlhdCI6MTc1MDYyMDg2OSwibmJmIjoxNzUwNjIwODY5LCJleHAiOjE3NTA3MDcyNjksIm5hbWUiOiJGdWxsIG5hbWUiLCJnaXZlbl9uYW1lIjp7ImRlY3J5cHRlZE1lc3NhZ2UiOiJBa2loaWtvIn0sIm1pZGRsZV9uYW1lIjp7ImRlY3J5cHRlZE1lc3NhZ2UiOiJzYXRvIn0sImZhbWlseV9uYW1lIjp7ImRlY3J5cHRlZE1lc3NhZ2UiOiJJbmZvIn0sInpvbmVpbmZvIjoidXRjIiwibG9jYWxlIjoiZW4tSU4iLCJub25jZSI6IjAxOTc5OTIyLTkyZjctN2JhYy1hNmYyLTE3NGM0ZmRjYzE1NSIsInJvbGVzIjoiZ3NicGEtYXBpLWFjY291bnQiLCJqdGkiOiIwMTk3OTkyMi05MmVjLTcxMWItOWVkYy01NzU1YzgxOWE4MjYiLCJvcmdfaWQiOiIwMTk3OGNjZi02ZTg5LTdhNDQtYmExYi05OWE1MTliMmJmMTQiLCJvcmdfbmFtZSI6bnVsbCwidGltZXpvbmUiOiJ1dGMifQ.6FYYUVVxmdNP_amrHkmwZXFi1WTcWNbaVAfMb68GBDV5P9B0WpNIjk-QDVXiBONy1e1lJi8eA8CeRcazREI-hg",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"satellite_pass_booking_id\": \"01979907-b108-7663-92a4-d731c41d8f80\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DemoUrl}}/centralgroundstation/dev/portal/api/v1/central/bookings/cancel",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralgroundstation",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"bookings",
+						"cancel"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Reserved Contact",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON\r",
+							"var responseBody = pm.response.json();\r",
+							" \r",
+							"// Update environment variable with a specific property from the response\r",
+							"if (responseBody.accessToken !== undefined) {\r",
+							"    // Set accessToken in the current environment\r",
+							"    pm.environment.set(\"accessToken\", responseBody.accessToken);\r",
+							" \r",
+							"    // Set refreshToken in the current environment\r",
+							"    pm.environment.set(\"refreshToken\", responseBody.refreshToken);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJEaHJ1dmEgU3BhY2U6IElTT0NTIEFwcGxpY2F0aW9uIiwic3ViIjoiMDE5NzdjYzMtZDYxMS03M2IzLWJmZTQtOGFlY2YwZGYxMGVkIiwic21fbWVtYl9pZCI6IjAxOTc3Y2MzLWQ2MTEtNzNiMy1iZmU0LThhZWNmMGRmMTBlZCIsImF1ZCI6Imh0dHBzOi8vaXNvY3NhcHAuZGhydXZhc3BhY2UuY29tLyIsImlhdCI6MTc1MDU5NzY2NSwibmJmIjoxNzUwNTk3NjY1LCJleHAiOjE3NTA2ODQwNjUsIm5hbWUiOiJGdWxsIG5hbWUiLCJnaXZlbl9uYW1lIjp7ImRlY3J5cHRlZE1lc3NhZ2UiOiJBa2loaWtvIn0sIm1pZGRsZV9uYW1lIjp7ImRlY3J5cHRlZE1lc3NhZ2UiOiJzYXRvIn0sImZhbWlseV9uYW1lIjp7ImRlY3J5cHRlZE1lc3NhZ2UiOiJJbmZvIn0sInpvbmVpbmZvIjoidXRjIiwibG9jYWxlIjoiZW4tSU4iLCJub25jZSI6IjAxOTc5N2MwLTg0ODMtNzRjNS04M2Q0LWZhYzdjYTYwZTVhMyIsInJvbGVzIjoiZ3NicGEtYXBpLWFjY291bnQiLCJqdGkiOiIwMTk3OTdjMC04NDdmLTc4MDUtYjYxOS0yNmJmYjAwNTFjNzAiLCJvcmdfaWQiOiIwMTk3OGNjZi02ZTg5LTdhNDQtYmExYi05OWE1MTliMmJmMTQiLCJvcmdfbmFtZSI6bnVsbCwidGltZXpvbmUiOiJ1dGMifQ.a7NZN_ThE-iCSclHZYk-zo4BjqPoXVl2XRDve87f-nxlHAqRWfidsj2zX0YZE1XRO6OtlxNkg08qxcLp9GvEWw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"satellite_pass_booking_id\": \"01979907-b108-7663-92a4-d731c41d8f80\",\r\n\"gs_id\": \"019793b2-eefe-735c-8471-121e15072770\",\r\n\"satellite_id\": \"01978d0e-06bf-761f-8d01-5f400a3f6d49\",\r\n\"gs_visibility_id\": \"019798e4-b957-746b-b5cc-3c6424d02c59\",\r\n\"spbas_id\": \"01912cbb-d936-7856-843f-58adc0b358cc\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DemoUrl}}/centralgroundstation/dev/portal/api/v1/central/bookings/reschedule",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralgroundstation",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"bookings",
+						"reschedule"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Satellite Pass Status",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{DemoUrl}}/centralgroundstation/dev/portal/api/v1/central/bookings/passstatus/019b974f-9675-7fe4-a184-c7f328c2e184",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralgroundstation",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"bookings",
+						"passstatus",
+						"019b974f-9675-7fe4-a184-c7f328c2e184"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Manual Telecommands",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"satellite_id\": \"01977a19-3b0d-766a-bcfb-75c76175b359\",\r\n    \"satellite_pass_booking_id\": \"019b4feb-6db4-74a9-94b2-5d3ede42f663\",\r\n    \"telecommand\": \"START_DATA_TRANSMISSION\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DemoUrl}}/centralsatellite/dev/portal/api/v1/central/telecommand/manual",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"centralsatellite",
+						"dev",
+						"portal",
+						"api",
+						"v1",
+						"central",
+						"telecommand",
+						"manual"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login API",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response body as JSON",
+							"var responseBody = pm.response.json();",
+							" ",
+							"// Update environment variable with a specific property from the response",
+							"if (responseBody.accessToken !== undefined) {",
+							"    // Set accessToken in the current environment",
+							"    pm.environment.set(\"accessToken\", responseBody.accessToken);",
+							" ",
+							"    // Set refreshToken in the current environment",
+							"    pm.environment.set(\"refreshToken\", responseBody.refreshToken);",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sm_email\":\"demotakeme2space@dhruvaspace.com\",\n    \"sm_password\":\"T@keme2$p@ce_216\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DemoUrl}}/userservice/dev/api/v1/user/login",
+					"host": [
+						"{{DemoUrl}}"
+					],
+					"path": [
+						"userservice",
+						"dev",
+						"api",
+						"v1",
+						"user",
+						"login"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

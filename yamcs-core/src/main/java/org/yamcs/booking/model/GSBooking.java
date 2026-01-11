@@ -26,6 +26,14 @@ public class GSBooking {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // Generic provider fields (works for any provider: Dhruva, Leafspace, ISRO, etc.)
+    private String providerSatelliteId;
+    private String providerGsId;
+    private String providerContactId;      // visibility/contact window ID
+    private String providerBookingId;      // booking ID from provider
+    private String providerMetadata;       // JSON for provider-specific data (activity scopes, etc.)
+    private Double maxElevation;
+
     public GSBooking() {
         this.status = "pending";
         this.gsStatus = "scheduled";
@@ -89,6 +97,25 @@ public class GSBooking {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    // Generic provider getters and setters
+    public String getProviderSatelliteId() { return providerSatelliteId; }
+    public void setProviderSatelliteId(String providerSatelliteId) { this.providerSatelliteId = providerSatelliteId; }
+
+    public String getProviderGsId() { return providerGsId; }
+    public void setProviderGsId(String providerGsId) { this.providerGsId = providerGsId; }
+
+    public String getProviderContactId() { return providerContactId; }
+    public void setProviderContactId(String providerContactId) { this.providerContactId = providerContactId; }
+
+    public String getProviderBookingId() { return providerBookingId; }
+    public void setProviderBookingId(String providerBookingId) { this.providerBookingId = providerBookingId; }
+
+    public String getProviderMetadata() { return providerMetadata; }
+    public void setProviderMetadata(String providerMetadata) { this.providerMetadata = providerMetadata; }
+
+    public Double getMaxElevation() { return maxElevation; }
+    public void setMaxElevation(Double maxElevation) { this.maxElevation = maxElevation; }
 
     @Override
     public String toString() {

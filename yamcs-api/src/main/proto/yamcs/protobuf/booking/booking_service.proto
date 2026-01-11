@@ -64,6 +64,57 @@ service BookingApi {
       get: "/api/booking/enums"
     };
   }
+
+  // Get satellites from a provider
+  rpc GetProviderSatellites(GetProviderDataRequest) returns (GetSatellitesResponse) {
+    option (yamcs.api.route) = {
+      get: "/api/booking/provider/{provider}/satellites"
+    };
+  }
+
+  // Get ground stations from a provider
+  rpc GetProviderGroundStations(GetProviderDataRequest) returns (GetGroundStationsResponse) {
+    option (yamcs.api.route) = {
+      get: "/api/booking/provider/{provider}/groundstations"
+    };
+  }
+
+  // Get activity scopes for a satellite (returns list)
+  rpc GetActivityScopes(GetActivityScopeRequest) returns (GetActivityScopesResponse) {
+    option (yamcs.api.route) = {
+      get: "/api/booking/provider/{provider}/satellites/{satelliteId}/activityscopes"
+    };
+  }
+
+  // Get available contacts (visibility windows) from a provider
+  rpc GetProviderContacts(GetContactsRequest) returns (GetContactsResponse) {
+    option (yamcs.api.route) = {
+      get: "/api/booking/provider/{provider}/contacts"
+    };
+  }
+
+  // Reserve a contact with a provider
+  rpc ReserveContact(ReserveContactRequest) returns (ProviderBookingInfo) {
+    option (yamcs.api.route) = {
+      post: "/api/booking/provider/{provider}/reserve"
+      body: "*"
+    };
+  }
+
+  // Cancel a provider booking
+  rpc CancelProviderBooking(CancelBookingRequest) returns (CancelBookingResponse) {
+    option (yamcs.api.route) = {
+      post: "/api/booking/provider/{provider}/cancel"
+      body: "*"
+    };
+  }
+
+  // Get provider bookings
+  rpc GetProviderBookings(GetProviderDataRequest) returns (GetProviderBookingsResponse) {
+    option (yamcs.api.route) = {
+      get: "/api/booking/provider/{provider}/bookings"
+    };
+  }
 }
 
 // Messages
@@ -107,6 +158,10 @@ message BookingInfo {
   optional string notes = 17;
   optional google.protobuf.Timestamp createdAt = 18;
   optional google.protobuf.Timestamp updatedAt = 19;
+  // Provider-specific fields
+  optional string providerBookingId = 20;
+  optional string providerSatelliteId = 21;
+  optional double maxElevation = 22;
 }
 
 message CreateBookingRequest {
@@ -133,4 +188,118 @@ message GetEnumValuesResponse {
   repeated string passTypes = 4;
   repeated string purposeTypes = 5;
   repeated string gsStatusTypes = 6;
+}
+
+// Provider API messages
+message GetProviderDataRequest {
+  optional string provider = 1;
+}
+
+message GetActivityScopeRequest {
+  optional string provider = 1;
+  optional string satelliteId = 2;
+}
+
+message GetContactsRequest {
+  optional string provider = 1;
+  optional string gsId = 2;
+  optional string satelliteId = 3;
+  optional string spbasId = 4;
+  optional string startDate = 5;  // YYYY-MM-DD format
+  optional string endDate = 6;    // YYYY-MM-DD format
+}
+
+message ReserveContactRequest {
+  optional string provider = 1;
+  optional string gsId = 2;
+  optional string satelliteId = 3;
+  optional string gsVisibilityId = 4;
+  optional string gsabracId = 5;
+  optional string purpose = 6;
+  optional string notes = 7;
+  optional string satelliteName = 8;  // Human-readable satellite name
+}
+
+message CancelBookingRequest {
+  optional string provider = 1;
+  optional string satellitePassBookingId = 2;
+}
+
+message CancelBookingResponse {
+  optional bool success = 1;
+  optional string message = 2;
+}
+
+// Satellite info from provider
+message SatelliteInfo {
+  optional string id = 1;
+  optional string name = 2;
+  optional string noradId = 3;
+}
+
+message GetSatellitesResponse {
+  repeated SatelliteInfo satellites = 1;
+}
+
+// Ground station info from provider
+message GroundStationInfo {
+  optional string id = 1;
+  optional string name = 2;
+  optional string city = 3;
+  optional string state = 4;
+  optional string country = 5;
+  optional double latitude = 6;
+  optional double longitude = 7;
+}
+
+message GetGroundStationsResponse {
+  repeated GroundStationInfo groundStations = 1;
+}
+
+// Activity scope info
+message ActivityScopeInfo {
+  optional string gsabracId = 1;
+  optional string spbasId = 2;
+  optional string satelliteId = 3;
+  optional string activityScope = 4;
+  optional string taskName = 5;
+  optional string communicationBand = 6;
+}
+
+message GetActivityScopesResponse {
+  repeated ActivityScopeInfo activityScopes = 1;
+}
+
+// Contact/visibility window info
+message ContactInfo {
+  optional string gsVisibilityId = 1;
+  optional string gsId = 2;
+  optional string groundStationName = 3;
+  optional string satelliteId = 4;
+  optional google.protobuf.Timestamp passStart = 5;
+  optional google.protobuf.Timestamp passEnd = 6;
+  optional double maxElevation = 7;
+  optional string status = 8;
+  optional int32 durationSeconds = 9;
+}
+
+message GetContactsResponse {
+  repeated ContactInfo contacts = 1;
+}
+
+// Provider booking info
+message ProviderBookingInfo {
+  optional string satellitePassBookingId = 1;
+  optional string gsId = 2;
+  optional string groundStationName = 3;
+  optional string gsVisibilityId = 4;
+  optional int32 noradId = 5;
+  optional google.protobuf.Timestamp startDateTime = 6;
+  optional google.protobuf.Timestamp endDateTime = 7;
+  optional string status = 8;
+  optional double maxElevation = 9;
+}
+
+message GetProviderBookingsResponse {
+  repeated ProviderBookingInfo bookings = 1;
 }

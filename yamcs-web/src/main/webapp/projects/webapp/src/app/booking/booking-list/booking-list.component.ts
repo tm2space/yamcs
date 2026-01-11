@@ -28,15 +28,14 @@ import { WebappSdkModule, YamcsService } from '@yamcs/webapp-sdk';
 export class BookingListComponent implements OnInit {
   bookings: GSBooking[] = [];
   displayedColumns: string[] = [
+    'providerBookingId',
     'startTime',
+    'endTime',
     'satelliteId',
     'provider',
-    'passType',
-    'purpose',
-    'endTime',
-    'requestedBy',
-    'status',
+    'maxElevation',
     'gsStatus',
+    'status',
     'actions'
   ];
 

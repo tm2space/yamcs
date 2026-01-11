@@ -5,87 +5,163 @@
         [routerLink]="['/booking']"
         [queryParams]="{ c: yamcs.context }"
         icon="arrow_back" />
-      Create New Booking
+      Reserve Ground Station Contact
     </ng-template>
   </ya-instance-toolbar>
 
   <ya-panel>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="ya-form">
+    <form [formGroup]="form" class="ya-form">
 
-      <ya-field label="Provider">
+      <!-- Step 1: Select Provider -->
+      <ya-field label="Ground Station Provider">
         <ya-select formControlName="providerId" [options]="providerOptions" />
+        <small>Select the ground station network provider</small>
       </ya-field>
 
-      <ya-field label="Satellite">
-        <input type="text" formControlName="satelliteName" readonly style="background-color: var(--ya-surface-bright);" />
+      <!-- Step 2: Select Satellite (loaded from provider) -->
+      <ya-field label="Satellite" *ngIf="form.get('providerId')?.value">
+        <div *ngIf="isLoadingSatellites" class="loading-indicator">
+          Loading satellites...
+        </div>
+        <ya-select
+          *ngIf="!isLoadingSatellites"
+          formControlName="satelliteId"
+          [options]="satelliteOptions" />
+        <small *ngIf="satelliteOptions.length === 0 && !isLoadingSatellites">
+          No satellites available from this provider
+        </small>
       </ya-field>
 
-      <ya-field label="Start Time">
-        <ya-date-time-input formControlName="startDateTime" step="60" [showNow]="true" />
+      <!-- Step 3: Select Ground Station (loaded from provider) -->
+      <ya-field label="Ground Station" *ngIf="form.get('satelliteId')?.value">
+        <div *ngIf="isLoadingGroundStations" class="loading-indicator">
+          Loading ground stations...
+        </div>
+        <ya-select
+          *ngIf="!isLoadingGroundStations"
+          formControlName="groundStationId"
+          [options]="groundStationOptions" />
+        <small *ngIf="groundStationOptions.length === 0 && !isLoadingGroundStations">
+          No ground stations available from this provider
+        </small>
       </ya-field>
 
-      <ya-field label="Duration (minutes)">
-        <input type="number" formControlName="durationMinutes" min="5" max="60" placeholder="15" />
-        <small>Typical pass duration is 5-20 minutes</small>
+      <!-- Step 4: Select Activity Scope -->
+      <ya-field label="Activity Scope" *ngIf="form.get('satelliteId')?.value && activityScopeOptions.length > 0">
+        <ya-select
+          formControlName="activityScopeId"
+          [options]="activityScopeOptions" />
+        <small>Select the communication activity type</small>
       </ya-field>
 
-      <ya-field label="Pass Type">
-        <ya-select formControlName="passType" [options]="passTypeOptions" />
-      </ya-field>
-
-      <ya-field label="Purpose">
-        <ya-select formControlName="purpose" [options]="purposeOptions" />
-      </ya-field>
-
-      <ya-field label="Booking Type">
-        <ya-select formControlName="ruleType" [options]="ruleTypeOptions" />
-      </ya-field>
-
-      <ya-field
-        [label]="getFrequencyLabel()"
-        *ngIf="showFrequencyField()">
-        <input type="number" formControlName="frequencyDays" min="1" />
-        <small>{{ getFrequencyNote() }}</small>
-      </ya-field>
-
-      <ya-field label="Priority" *ngIf="showAdvancedOptions">
-        <ya-select formControlName="priority" [options]="priorityOptions" />
-      </ya-field>
-
-      <ya-field label="Frequency Band" *ngIf="showAdvancedOptions">
-        <ya-select formControlName="frequencyBand" [options]="frequencyBandOptions" />
-      </ya-field>
-
-      <ya-field label="Expected Data Volume (MB)" *ngIf="showAdvancedOptions">
-        <input type="number" formControlName="dataVolume" min="1" placeholder="100" />
-      </ya-field>
-
-      <ya-field label="Additional Requirements">
-        <textarea formControlName="notes" rows="2" placeholder="Any special requirements or configurations (optional)"></textarea>
-      </ya-field>
-
-      <div style="margin: 16px 0;">
-        <ya-button (click)="toggleAdvancedOptions()" appearance="link">
-          {{ showAdvancedOptions ? 'Hide' : 'Show' }} Advanced Options
+      <!-- Date Range for Contact Search -->
+      <div class="date-range-row" *ngIf="form.get('groundStationId')?.value && selectedActivityScope">
+        <ya-field label="Start Date" class="date-field">
+          <input type="date" formControlName="startDate" />
+        </ya-field>
+        <ya-field label="End Date" class="date-field">
+          <input type="date" formControlName="endDate" />
+        </ya-field>
+        <ya-button
+          appearance="text"
+          (click)="loadContacts()"
+          [disabled]="!canLoadContacts() || isLoadingContacts">
+          {{ isLoadingContacts ? 'Loading...' : 'Search Passes' }}
         </ya-button>
+      </div>
+
+      <!-- Step 4: Available Contacts (Passes) Table -->
+      <div *ngIf="contacts.length > 0 || isLoadingContacts" class="contacts-section">
+        <h3>Available Passes</h3>
+        <div *ngIf="isLoadingContacts" class="loading-indicator">
+          Loading available passes...
+        </div>
+
+        <table *ngIf="!isLoadingContacts && contacts.length > 0" class="contacts-table">
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Pass Start</th>
+              <th>Pass End</th>
+              <th>Duration</th>
+              <th>Max Elevation</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let contact of contacts"
+              [class.selected]="selectedContact?.gsVisibilityId === contact.gsVisibilityId"
+              [class.unavailable]="!isContactAvailable(contact)"
+              (click)="isContactAvailable(contact) && selectContact(contact)">
+              <td>
+                <input
+                  type="radio"
+                  name="selectedContact"
+                  [value]="contact.gsVisibilityId"
+                  [checked]="selectedContact?.gsVisibilityId === contact.gsVisibilityId"
+                  [disabled]="!isContactAvailable(contact)"
+                  (change)="selectContact(contact)" />
+              </td>
+              <td>{{ formatDateTime(contact.passStart) }}</td>
+              <td>{{ formatDateTime(contact.passEnd) }}</td>
+              <td>{{ formatDuration(contact.durationSeconds) }}</td>
+              <td>{{ contact.maxElevation.toFixed(1) }}°</td>
+              <td>
+                <span [class]="'status-badge status-' + contact.status">
+                  {{ contact.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="!isLoadingContacts && contacts.length === 0" class="no-contacts">
+          No available passes found for the selected date range.
+        </div>
+      </div>
+
+      <!-- Selected Contact Details -->
+      <div *ngIf="selectedContact" class="selected-contact-details">
+        <h3>Selected Pass</h3>
+        <div class="contact-detail-row">
+          <span class="label">Pass Window:</span>
+          <span>{{ formatDateTime(selectedContact.passStart) }} - {{ formatDateTime(selectedContact.passEnd) }}</span>
+        </div>
+        <div class="contact-detail-row">
+          <span class="label">Duration:</span>
+          <span>{{ formatDuration(selectedContact.durationSeconds) }}</span>
+        </div>
+        <div class="contact-detail-row">
+          <span class="label">Max Elevation:</span>
+          <span>{{ selectedContact.maxElevation.toFixed(1) }}°</span>
+        </div>
+        <div class="contact-detail-row" *ngIf="selectedContact.groundStationName">
+          <span class="label">Ground Station:</span>
+          <span>{{ selectedContact.groundStationName }}</span>
+        </div>
+      </div>
+
+      <!-- Booking Options -->
+      <div *ngIf="selectedContact" class="booking-options">
+        <ya-field label="Purpose">
+          <ya-select formControlName="purpose" [options]="purposeOptions" />
+        </ya-field>
+
+        <ya-field label="Notes">
+          <textarea formControlName="notes" rows="2" placeholder="Any special requirements (optional)"></textarea>
+        </ya-field>
       </div>
 
     </form>
 
-    <div *ngIf="submissionStatus !== 'idle'" class="submission-status">
-      <div [class]="'status-' + submissionStatus">
-        {{ submissionMessage }}
-      </div>
-    </div>
-
-
-    <div class="ya-button-bar" style="gap: 16px;">
+    <div class="ya-button-bar" style="gap: 16px; margin-top: 24px;">
       <ya-button (click)="onCancel()">CANCEL</ya-button>
       <ya-button
         appearance="primary"
         (click)="onSubmit()"
-        [disabled]="form.invalid || isSubmitting">
-        {{ isSubmitting ? 'CREATING...' : 'CREATE BOOKING' }}
+        [disabled]="!selectedContact || isSubmitting">
+        {{ isSubmitting ? 'RESERVING...' : 'RESERVE CONTACT' }}
       </ya-button>
     </div>
 
