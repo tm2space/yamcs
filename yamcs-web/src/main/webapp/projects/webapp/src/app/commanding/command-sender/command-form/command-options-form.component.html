@@ -5,6 +5,49 @@
     <ya-select [options]="streamOptions$ | async" formControlName="stream" [showClear]="true" />
   </ya-field>
 
+  <ya-field label="Ground Station Booking">
+    <span class="hint">Select an available booking for command execution.</span>
+    <br />
+    @if (isLoadingBookings) {
+      <span>Loading bookings...</span>
+    } @else {
+      <ya-select [options]="bookingOptions$ | async" formControlName="booking" [showClear]="true" />
+    }
+  </ya-field>
+
+  @if (selectedBooking) {
+    <div class="booking-details">
+      <div class="booking-detail-row">
+        <span class="label">Booking ID:</span>
+        <span class="value">{{ selectedBooking.providerBookingId || selectedBooking.id }}</span>
+      </div>
+      <div class="booking-detail-row">
+        <span class="label">Satellite:</span>
+        <span class="value">{{ selectedBooking.satelliteId }}</span>
+      </div>
+      <div class="booking-detail-row">
+        <span class="label">Provider:</span>
+        <span class="value">{{ selectedBooking.provider }}</span>
+      </div>
+      <div class="booking-detail-row">
+        <span class="label">Start Time:</span>
+        <span class="value">{{ selectedBooking.startTime | date:'medium' }}</span>
+      </div>
+      <div class="booking-detail-row">
+        <span class="label">End Time:</span>
+        <span class="value">{{ selectedBooking.endTime | date:'medium' }}</span>
+      </div>
+      <div class="booking-detail-row">
+        <span class="label">Max Elevation:</span>
+        <span class="value">{{ selectedBooking.maxElevation ? (selectedBooking.maxElevation | number:'1.1-1') + '°' : '-' }}</span>
+      </div>
+      <div class="booking-detail-row">
+        <span class="label">Status:</span>
+        <span class="value">{{ selectedBooking.gsStatus }}</span>
+      </div>
+    </div>
+  }
+
   @for (extra of commandOptions; track extra) {
     @switch (extra.type) {
       @case ("BOOLEAN") {

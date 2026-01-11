@@ -1,10 +1,12 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Input,
   OnChanges,
   OnInit,
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup } from '@angular/forms';
 import {
   CommandOption,
@@ -16,12 +18,15 @@ import {
 import { BehaviorSubject } from 'rxjs';
 import { renderValue } from '../arguments/argument/argument.component';
 import { TemplateProvider } from './TemplateProvider';
+import { BookingService, GSBooking } from '../../../booking/booking.service';
 
 @Component({
+  standalone: true,
   selector: 'app-command-options-form',
   templateUrl: './command-options-form.component.html',
+  styleUrl: './command-options-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [WebappSdkModule],
+  imports: [WebappSdkModule, CommonModule],
 })
 export class CommandOptionsForm implements OnInit, OnChanges {
   @Input()
@@ -33,8 +38,16 @@ export class CommandOptionsForm implements OnInit, OnChanges {
   commandOptions: CommandOption[];
 
   streamOptions$ = new BehaviorSubject<YaSelectOption[]>([]);
+  bookingOptions$ = new BehaviorSubject<YaSelectOption[]>([]);
+  bookings: GSBooking[] = [];
+  selectedBooking: GSBooking | null = null;
+  isLoadingBookings = false;
 
-  constructor(configService: ConfigService) {
+  constructor(
+    configService: ConfigService,
+    private bookingService: BookingService,
+    private cdr: ChangeDetectorRef
+  ) {
     this.commandOptions = configService.getCommandOptions();
 
     const streamOptions: YaSelectOption[] = configService
@@ -45,9 +58,49 @@ export class CommandOptionsForm implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.formGroup.addControl('stream', new FormControl(''));
+    this.formGroup.addControl('booking', new FormControl(''));
     for (const option of this.commandOptions) {
       this.formGroup.addControl('extra__' + option.id, new FormControl(null));
     }
+
+    // Load available bookings
+    this.loadBookings();
+
+    // Subscribe to booking selection changes
+    this.formGroup.controls['booking'].valueChanges.subscribe(bookingId => {
+      this.selectedBooking = this.bookings.find(b => b.id.toString() === bookingId) || null;
+      this.cdr.markForCheck();
+    });
+  }
+
+  private loadBookings(): void {
+    this.isLoadingBookings = true;
+    this.bookingService.getBookings().subscribe({
+      next: (bookings: GSBooking[]) => {
+        // Filter to show only approved bookings
+        this.bookings = bookings.filter((b: GSBooking) => b.status === 'approved');
+        const options: YaSelectOption[] = this.bookings.map((b: GSBooking) => ({
+          id: b.id.toString(),
+          label: `${b.satelliteId} - ${this.formatDateTime(b.startTime)} (${b.provider})`
+        }));
+        this.bookingOptions$.next(options);
+        this.isLoadingBookings = false;
+        this.cdr.markForCheck();
+      },
+      error: (err: Error) => {
+        console.error('Failed to load bookings:', err);
+        this.isLoadingBookings = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private formatDateTime(isoString: string): string {
+    return new Date(isoString).toLocaleString();
+  }
+
+  getSelectedBooking(): GSBooking | null {
+    return this.selectedBooking;
   }
 
   ngOnChanges(): void {
