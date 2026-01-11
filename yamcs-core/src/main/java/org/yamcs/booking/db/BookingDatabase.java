@@ -73,6 +73,7 @@ public class BookingDatabase {
 
     // Provider methods
     public List<GSProvider> getAllProviders() throws SQLException {
+        log.debug("[DB] getAllProviders - Fetching all active providers");
         List<GSProvider> providers = new ArrayList<>();
         String sql = "SELECT * FROM gs_providers WHERE is_active = true ORDER BY name";
 
@@ -85,10 +86,12 @@ public class BookingDatabase {
             }
         }
 
+        log.debug("[DB] getAllProviders - Returned {} providers", providers.size());
         return providers;
     }
 
     public GSProvider getProviderById(int id) throws SQLException {
+        log.debug("[DB] getProviderById - Looking up provider with id={}", id);
         String sql = "SELECT * FROM gs_providers WHERE id = ?";
 
         try (Connection conn = dataSource.getConnection();
@@ -97,16 +100,21 @@ public class BookingDatabase {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return mapProviderFromResultSet(rs);
+                    GSProvider provider = mapProviderFromResultSet(rs);
+                    log.debug("[DB] getProviderById - Found provider: id={}, name={}, type={}",
+                            provider.getId(), provider.getName(), provider.getType());
+                    return provider;
                 }
             }
         }
 
+        log.debug("[DB] getProviderById - No provider found with id={}", id);
         return null;
     }
 
     // Booking methods
     public List<GSBooking> getAllBookings() throws SQLException {
+        log.debug("[DB] getAllBookings - Fetching all bookings");
         List<GSBooking> bookings = new ArrayList<>();
         String sql = """
             SELECT b.*
@@ -123,10 +131,12 @@ public class BookingDatabase {
             }
         }
 
+        log.debug("[DB] getAllBookings - Returned {} bookings", bookings.size());
         return bookings;
     }
 
     public List<GSBooking> getPendingBookings() throws SQLException {
+        log.debug("[DB] getPendingBookings - Fetching pending bookings");
         List<GSBooking> bookings = new ArrayList<>();
         String sql = """
             SELECT b.*
@@ -144,10 +154,44 @@ public class BookingDatabase {
             }
         }
 
+        log.debug("[DB] getPendingBookings - Returned {} pending bookings", bookings.size());
         return bookings;
     }
 
+    /**
+     * Get booking by provider_booking_id (ISOCS satellite_pass_booking_id, Leafspace booking_id, etc.)
+     */
+    public GSBooking getBookingByProviderBookingId(String providerBookingId) throws SQLException {
+        log.debug("[DB] getBookingByProviderBookingId - Looking up booking with providerBookingId={}", providerBookingId);
+        String sql = """
+            SELECT b.*
+            FROM gs_bookings b
+            WHERE b.provider_booking_id = ?
+            """;
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, providerBookingId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    GSBooking booking = mapBookingFromResultSet(rs);
+                    log.debug("[DB] getBookingByProviderBookingId - Found booking: id={}, provider={}, satellite={}, status={}",
+                            booking.getId(), booking.getProvider(), booking.getSatelliteId(), booking.getStatus());
+                    return booking;
+                }
+            }
+        }
+
+        log.debug("[DB] getBookingByProviderBookingId - No booking found with providerBookingId={}", providerBookingId);
+        return null;
+    }
+
     public GSBooking createBooking(GSBooking booking) throws SQLException {
+        log.info("[DB] createBooking - Creating booking: provider={}, satellite={}, startTime={}, duration={}, requestedBy={}, providerBookingId={}",
+                booking.getProvider(), booking.getSatelliteId(), booking.getStartTime(),
+                booking.getDurationMinutes(), booking.getRequestedBy(), booking.getProviderBookingId());
+
         String sql = """
             INSERT INTO gs_bookings (provider, satellite_id, start_time, duration_minutes,
                                    pass_type, purpose, rule_type, frequency_days,
@@ -191,10 +235,17 @@ public class BookingDatabase {
             }
         }
 
+        log.info("[DB] createBooking - Booking created successfully: id={}, provider={}, satellite={}, startTime={}, endTime={}, status={}",
+                booking.getId(), booking.getProvider(), booking.getSatelliteId(),
+                booking.getStartTime(), booking.getEndTime(), booking.getStatus());
+
         return booking;
     }
 
     public boolean approveBooking(int bookingId, String approver, String comments) throws SQLException {
+        log.info("[DB] approveBooking - Approving booking: id={}, approver={}, comments={}",
+                bookingId, approver, comments != null ? comments : "N/A");
+
         String updateSql = """
             UPDATE gs_bookings
             SET status = 'approved', approved_by = ?, approved_at = CURRENT_TIMESTAMP
@@ -225,19 +276,25 @@ public class BookingDatabase {
                     logStmt.executeUpdate();
 
                     conn.commit();
+                    log.info("[DB] approveBooking - Booking approved successfully: id={}, approver={}", bookingId, approver);
                     return true;
                 } else {
                     conn.rollback();
+                    log.warn("[DB] approveBooking - Booking not found or already processed: id={}", bookingId);
                     return false;
                 }
             } catch (SQLException e) {
                 conn.rollback();
+                log.error("[DB] approveBooking - Error approving booking id={}: {}", bookingId, e.getMessage(), e);
                 throw e;
             }
         }
     }
 
     public boolean rejectBooking(int bookingId, String approver, String reason) throws SQLException {
+        log.info("[DB] rejectBooking - Rejecting booking: id={}, approver={}, reason={}",
+                bookingId, approver, reason);
+
         String updateSql = """
             UPDATE gs_bookings
             SET status = 'rejected', rejection_reason = ?
@@ -268,13 +325,17 @@ public class BookingDatabase {
                     logStmt.executeUpdate();
 
                     conn.commit();
+                    log.info("[DB] rejectBooking - Booking rejected successfully: id={}, approver={}, reason={}",
+                            bookingId, approver, reason);
                     return true;
                 } else {
                     conn.rollback();
+                    log.warn("[DB] rejectBooking - Booking not found or already processed: id={}", bookingId);
                     return false;
                 }
             } catch (SQLException e) {
                 conn.rollback();
+                log.error("[DB] rejectBooking - Error rejecting booking id={}: {}", bookingId, e.getMessage(), e);
                 throw e;
             }
         }
