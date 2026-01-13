@@ -2,8 +2,12 @@ package org.yamcs.tctm.ccsds;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yamcs.security.sdls.SdlsSecurityAssociation;
+import org.yamcs.security.sdls.StandardAuthMask;
+import org.yamcs.security.sdls.SdlsSecurityAssociation.VerificationStatusCode;
 import org.yamcs.tctm.TcTmException;
 import org.yamcs.tctm.ccsds.DownlinkManagedParameters.FrameErrorDetection;
+import org.yamcs.tctm.ccsds.DownlinkManagedParameters.SdlsInfo;
 import org.yamcs.tctm.ccsds.TmManagedParameters.ServiceType;
 import org.yamcs.tctm.ccsds.TmManagedParameters.TmVcManagedParameters;
 import org.yamcs.tctm.ccsds.error.CrcCciitCalculator;
@@ -73,6 +77,7 @@ public class TmFrameDecoder implements TransferFrameDecoder {
             ttf.setOcf(ByteArrayUtils.decodeInt(data, dataEnd));
         }
 
+        // Transfer frame data field status
         int tfdfs = ByteArrayUtils.decodeShort(data, offset + 4);
         boolean secHeaderPresent = (tfdfs & 0x8000) == 0x8000;
         boolean syncFlag = (tfdfs & 0x4000) == 0x4000;
@@ -83,6 +88,40 @@ public class TmFrameDecoder implements TransferFrameDecoder {
             ttf.setShLength(secHeaderLength);
             dataOffset += secHeaderLength;
         }
+
+        if (vmp.encryptionSpis.length > 0) {
+            // encrypted channel,
+            // the security header follows after the frame header and insert zone
+            // first two bytes are the spi
+            short receivedSpi = ByteArrayUtils.decodeShort(data, dataOffset);
+            SdlsInfo sdlsInfo = tmParams.sdlsSecurityAssociations.get(receivedSpi);
+            if (sdlsInfo == null) {
+                throw new TcTmException("Received TM frame with unknown SPI " + receivedSpi);
+            }
+
+            int secHeaderStart = dataOffset;
+
+            int decryptionTrailerEnd = dataEnd;
+
+            SdlsSecurityAssociation sa = sdlsInfo.sa();
+            // Use the custom auth mask if we have one, otherwise use the default
+            byte[] authMask = sdlsInfo.customAuthMask();
+            if (authMask == null)
+                authMask = StandardAuthMask.TM(tmParams.fshLength, sa.securityHdrAuthMask());
+
+            // try to decrypt the frame
+            VerificationStatusCode decryptionStatus = sa.processSecurity(data, offset,
+                    secHeaderStart, decryptionTrailerEnd, authMask);
+
+            if (decryptionStatus != VerificationStatusCode.NoFailure) {
+                throw new TcTmException("Failed to decrypt TM frame for SPI " + receivedSpi + ": " + decryptionStatus);
+            }
+
+            // Update the offsets
+            dataOffset += sa.getHeaderSize();
+            dataEnd -= sa.getTrailerSize();
+        }
+
         if (vmp.service == ServiceType.PACKET) {
             if (syncFlag) {
                 throw new TcTmException("VC " + virtualChannelId + " "

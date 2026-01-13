@@ -20,7 +20,7 @@ public abstract class AbstractTmFrameLink extends AbstractLink implements Aggreg
     // all the TM frame links should move the TM frame config under this section, to allow having both TM and TC frame
     // in the same link
     final public static String TM_FRAME_CONFIG_SECTION = "tmFrameConfig";
-    
+
     protected List<Link> subLinks;
     protected MasterChannelFrameHandler frameHandler;
     protected AtomicLong validFrameCount = new AtomicLong(0);
@@ -31,13 +31,22 @@ public abstract class AbstractTmFrameLink extends AbstractLink implements Aggreg
 
     @Override
     public Spec getDefaultSpec() {
-        var spec = super.getDefaultSpec();
+        Spec spec = super.getDefaultSpec();
         addDefaultOptions(spec);
         return spec;
     }
 
     public static Spec addDefaultOptions(Spec spec) {
         spec.addOption("frameType", OptionType.STRING).withChoices(CcsdsFrameType.class);
+
+        Spec frameEncryptionSpec = new Spec();
+        frameEncryptionSpec.addOption("class", OptionType.STRING).withRequired(true);
+        frameEncryptionSpec.addOption("args", OptionType.ANY);
+        frameEncryptionSpec.addOption("spi", OptionType.INTEGER).withRequired(true);
+        frameEncryptionSpec.addOption("authMask", OptionType.STRING);
+
+        spec.addOption("encryption", OptionType.LIST).withElementType(OptionType.MAP).withSpec(frameEncryptionSpec);
+
         spec.addOption("clcwStream", OptionType.STRING);
         spec.addOption("goodFrameStream", OptionType.STRING);
         spec.addOption("badFrameStream", OptionType.STRING);
@@ -92,7 +101,7 @@ public abstract class AbstractTmFrameLink extends AbstractLink implements Aggreg
 
     /**
      * sends a frame to the multiplexer, after decoding and derandomizing it (if necessary)
-     * 
+     *
      * @param ert
      *            - earth reception time
      * @param data
@@ -129,7 +138,7 @@ public abstract class AbstractTmFrameLink extends AbstractLink implements Aggreg
 
             validFrameCount.getAndIncrement();
         } catch (TcTmException e) {
-            eventProducer.sendWarning("Error processing frame: " + e.toString());
+            eventProducer.sendWarning("Error processing frame: " + e);
             invalidFrameCount.getAndIncrement();
         }
     }

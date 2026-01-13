@@ -11,7 +11,7 @@ public class UslpManagedParameters extends DownlinkManagedParameters {
 
     enum COPType {
         COP_1, COP_P, NONE
-    };
+    }
 
     enum ServiceType {
         /** Multiplexing Protocol Data Unit */
@@ -20,7 +20,7 @@ public class UslpManagedParameters extends DownlinkManagedParameters {
         IDLE,
         /** Virtual Channel Access */
         VCA
-    };
+    }
 
     int frameLength; // frame length if fixed or -1 if not fixed
     int maxFrameLength;
@@ -32,8 +32,8 @@ public class UslpManagedParameters extends DownlinkManagedParameters {
     int fshLength; // 0 means not present
     Map<Integer, UslpVcManagedParameters> vcParams = new HashMap<>();
 
-    public UslpManagedParameters(YConfiguration config) {
-        super(config);
+    public UslpManagedParameters(YConfiguration config, String yamcsInstance, String linkName) {
+        super(config, yamcsInstance, linkName);
 
         frameLength = config.getInt("frameLength", -1);
         if (frameLength < 0) {
@@ -46,7 +46,7 @@ public class UslpManagedParameters extends DownlinkManagedParameters {
 
         List<YConfiguration> l = config.getConfigList("virtualChannels");
         for (YConfiguration yc : l) {
-            UslpVcManagedParameters ump = new UslpVcManagedParameters(yc);
+            UslpVcManagedParameters ump = new UslpVcManagedParameters(yc, this);
             if (vcParams.containsKey(ump.vcId)) {
                 throw new ConfigurationException("duplicate configuration of vcId " + ump.vcId);
             }
@@ -68,8 +68,8 @@ public class UslpManagedParameters extends DownlinkManagedParameters {
         int vcCountLengthForExpeditedQos;
         int truncatedTransferFrameLength;
 
-        public UslpVcManagedParameters(YConfiguration config) {
-            super(config);
+        public UslpVcManagedParameters(YConfiguration config, UslpManagedParameters uslpParams) {
+            super(config, uslpParams);
             service = config.getEnum("service", ServiceType.class);
             if (service == ServiceType.PACKET) {
                 parsePacketConfig();
@@ -118,5 +118,9 @@ public class UslpManagedParameters extends DownlinkManagedParameters {
             }
         }
         return m;
+    }
+
+    public VcDownlinkManagedParameters getVcParams(int vcId) {
+        return vcParams.get(vcId);
     }
 }

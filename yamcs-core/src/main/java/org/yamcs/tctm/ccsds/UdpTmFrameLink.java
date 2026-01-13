@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -11,6 +12,8 @@ import org.yamcs.ConfigurationException;
 import org.yamcs.Spec;
 import org.yamcs.Spec.OptionType;
 import org.yamcs.YConfiguration;
+import org.yamcs.security.sdls.SdlsSecurityAssociation;
+import org.yamcs.tctm.ccsds.DownlinkManagedParameters.SdlsInfo;
 import org.yamcs.utils.StringConverter;
 
 /**
@@ -21,15 +24,20 @@ import org.yamcs.utils.StringConverter;
  *
  */
 public class UdpTmFrameLink extends AbstractTmFrameLink implements Runnable {
-    private DatagramSocket tmSocket;
+    protected DatagramSocket tmSocket;
     private int port;
 
-    DatagramPacket datagram;
+    /**
+     * Bytes to ignore at the start of the frame
+     */
+    protected int initialBytesToStrip;
+    protected DatagramPacket datagram;
 
     @Override
     public Spec getSpec() {
         var spec = getDefaultSpec();
         spec.addOption("port", OptionType.INTEGER);
+        spec.addOption("initialBytesToStrip", OptionType.INTEGER).withDefault(0);
         return spec;
     }
 
@@ -44,6 +52,7 @@ public class UdpTmFrameLink extends AbstractTmFrameLink implements Runnable {
         super.init(instance, name, config);
         port = config.getInt("port");
         int maxLength = frameHandler.getMaxFrameSize();
+        initialBytesToStrip = config.getInt("initialBytesToStrip", 0);
         datagram = new DatagramPacket(new byte[maxLength], maxLength);
     }
 
@@ -82,7 +91,7 @@ public class UdpTmFrameLink extends AbstractTmFrameLink implements Runnable {
                             .arrayToHexString(datagram.getData(), datagram.getOffset(), datagram.getLength(), true));
                 }
                 dataIn(1, datagram.getLength());
-                handleFrame(timeService.getHresMissionTime(), datagram.getData(), datagram.getOffset(),
+                handleFrame(timeService.getHresMissionTime(), datagram.getData(), datagram.getOffset() + initialBytesToStrip,
                         datagram.getLength());
 
             } catch (IOException e) {
@@ -132,5 +141,21 @@ public class UdpTmFrameLink extends AbstractTmFrameLink implements Runnable {
     @Override
     protected Status connectionStatus() {
         return Status.OK;
+    }
+
+    public SdlsSecurityAssociation getSdls(short spi) {
+        SdlsInfo sdlsInfo = this.frameHandler.params.sdlsSecurityAssociations.get(spi);
+        if (sdlsInfo != null)
+            return sdlsInfo.sa();
+        return null;
+    }
+
+    public Collection<Short> getSpis() {
+        return this.frameHandler.params.sdlsSecurityAssociations.keySet();
+    }
+
+    public void setSpis(int vcId, short[] spis) {
+        this.frameHandler.params.getVcParams(vcId)
+                .encryptionSpis = spis;
     }
 }

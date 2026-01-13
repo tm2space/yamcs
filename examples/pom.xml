@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.yamcs</groupId>
     <artifactId>yamcs</artifactId>
-    <version>5.12.2-SNAPSHOT</version>
+    <version>5.12.4-SNAPSHOT</version>
   </parent>
 
   <groupId>org.yamcs.examples</groupId>
@@ -29,6 +29,7 @@
   <modules>
     <module>cascading</module>
     <module>ccsds-frames</module>
+    <module>ccsds-frames-sdls</module>
     <module>cfdp</module>
     <module>cfdp-udp</module>
     <module>perftest1</module>

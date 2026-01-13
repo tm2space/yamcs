@@ -15,12 +15,12 @@ public class TmManagedParameters extends DownlinkManagedParameters {
         PACKET,
         /** Virtual Channel Access Service Data Unit */
         VCA
-    };
+    }
 
     Map<Integer, TmVcManagedParameters> vcParams = new HashMap<>();
 
-    public TmManagedParameters(YConfiguration config) {
-        super(config);
+    public TmManagedParameters(YConfiguration config, String yamcsInstance, String linkName) {
+        super(config, yamcsInstance, linkName);
 
         frameLength = config.getInt("frameLength");
         if (frameLength < 8 || frameLength > 0xFFFF) {
@@ -33,7 +33,7 @@ public class TmManagedParameters extends DownlinkManagedParameters {
 
         List<YConfiguration> l = config.getConfigList("virtualChannels");
         for (YConfiguration yc : l) {
-            TmVcManagedParameters vmp = new TmVcManagedParameters(yc);
+            TmVcManagedParameters vmp = new TmVcManagedParameters(yc, this);
             if (vcParams.containsKey(vmp.vcId)) {
                 throw new ConfigurationException("duplicate configuration of vcId " + vmp.vcId);
             }
@@ -72,9 +72,8 @@ public class TmManagedParameters extends DownlinkManagedParameters {
     static class TmVcManagedParameters extends VcDownlinkManagedParameters {
         ServiceType service;
 
-        public TmVcManagedParameters(YConfiguration config) {
-            super(config);
-
+        public TmVcManagedParameters(YConfiguration config, TmManagedParameters tmParams) {
+            super(config, tmParams);
             if (vcId < 0 || vcId > 7) {
                 throw new ConfigurationException("Invalid vcId: " + vcId + ". Allowed values are from 0 to 7.");
             }
@@ -85,6 +84,10 @@ public class TmManagedParameters extends DownlinkManagedParameters {
                 parseVcaConfig();
             }
         }
+    }
+
+    public VcDownlinkManagedParameters getVcParams(int vcId) {
+        return vcParams.get(vcId);
     }
 
 }

@@ -37,22 +37,26 @@ public class SimulatorArgs {
     @Parameter(names = "--tc-frame-port", description = "the UDP port where the simulator listens for TC frames")
     public int tcFramePort = 10018;
 
-    @Parameter(names = "--tm-frame-length", description = "the TM/AOS/USLP frame length (set to 0 to disable the frame functionality)")
+    @Parameter(names = "--tm-frame-length", description = "the TM/AOS/USLP frame length (set to 0 to disable the " +
+            "frame functionality)")
     public int tmFrameLength = 0;
 
     @Parameter(names = "--tm-frame-freq", description = "the number of TM frames to send per second")
     public double tmFrameFreq = 10;
 
-    @Parameter(names = "--perf-np", description = "performance test: number of packets. Set to 0 to disable sending the performance packets")
+    @Parameter(names = "--perf-np", description = "performance test: number of packets. Set to 0 to disable sending " +
+            "the performance packets")
     public int perfNp = 0;
 
     @Parameter(names = "--perf-ps", description = "performance test: packet size")
     public int perfPs = 1400;
 
-    @Parameter(names = "--perf-ms", description = "performance test: interval in between batch of packets in milliseconds")
+    @Parameter(names = "--perf-ms", description = "performance test: interval in between batch of packets in " +
+            "milliseconds")
     public long perfMs = 100l;
 
-    @Parameter(names = "--perf-cp", description = "performance test: percentange (0-100) of data changed between two subsequent versions of the same packet")
+    @Parameter(names = "--perf-cp", description = "performance test: percentange (0-100) of data changed between two " +
+            "subsequent versions of the same packet")
     public float perfChangePercent = 10;
 
     @Parameter(names = "--type", description = "one of: pus or col")
@@ -63,4 +67,13 @@ public class SimulatorArgs {
 
     @Parameter(names = "--data-dir", converter = PathConverter.class)
     public Path dataDir = Path.of("data");
+
+    @Parameter(names = "--encryption-class", description = "The SDLS implementation to use")
+    public String encryptionClass;
+
+    @Parameter(names = "--encryption-spi", description = "SPI to use for SDLS encryption of frames")
+    public int encryptionSpi;
+
+    @Parameter(names = "--encryption-args", description = "Arguments to pass to the SDLS implementation")
+    public String encryptionArgs;
 }

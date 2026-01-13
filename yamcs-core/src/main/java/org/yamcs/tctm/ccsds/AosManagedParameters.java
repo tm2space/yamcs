@@ -17,7 +17,7 @@ public class AosManagedParameters extends DownlinkManagedParameters {
         VCA,
         /** IDLE frames are those with vcId = 63 */
         IDLE
-    };
+    }
 
     final static int VCID_IDLE = 63;
 
@@ -28,8 +28,8 @@ public class AosManagedParameters extends DownlinkManagedParameters {
 
     public boolean frameHeaderErrorControlPresent;
 
-    public AosManagedParameters(YConfiguration config) {
-        super(config);
+    public AosManagedParameters(YConfiguration config, String yamcsInstance, String linkName) {
+        super(config, yamcsInstance, linkName);
         frameLength = config.getInt("frameLength");
         if (frameLength < 8 || frameLength > 0xFFFF) {
             throw new ConfigurationException("Invalid frame length " + frameLength);
@@ -47,7 +47,7 @@ public class AosManagedParameters extends DownlinkManagedParameters {
 
         List<YConfiguration> l = config.getConfigList("virtualChannels");
         for (YConfiguration yc : l) {
-            AosVcManagedParameters vmp = new AosVcManagedParameters(yc);
+            AosVcManagedParameters vmp = new AosVcManagedParameters(yc, this);
             if (vcParams.containsKey(vmp.vcId)) {
                 throw new ConfigurationException("duplicate configuration of vcId " + vmp.vcId);
             }
@@ -94,8 +94,8 @@ public class AosManagedParameters extends DownlinkManagedParameters {
         ServiceType service;
         boolean ocfPresent;
 
-        public AosVcManagedParameters(YConfiguration config) {
-            super(config);
+        public AosVcManagedParameters(YConfiguration config, AosManagedParameters aosParams) {
+            super(config, aosParams);
 
             if (vcId < 0 || vcId > 63) {
                 throw new ConfigurationException("Invalid vcId: " + vcId + ". Allowed values are from 0 to 63.");
@@ -114,8 +114,9 @@ public class AosManagedParameters extends DownlinkManagedParameters {
             }
         }
 
-        AosVcManagedParameters() {
-            super(YConfiguration.emptyConfig());
+        AosVcManagedParameters(String yamcsInstance, String linkName) {
+            super(YConfiguration.emptyConfig(), new AosManagedParameters(YConfiguration.emptyConfig(), yamcsInstance,
+                    linkName));
         }
     }
 

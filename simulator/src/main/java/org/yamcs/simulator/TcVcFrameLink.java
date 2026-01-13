@@ -1,20 +1,21 @@
 package org.yamcs.simulator;
 
 import java.nio.ByteBuffer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yamcs.security.sdls.SdlsSecurityAssociation;
+import org.yamcs.security.sdls.StandardAuthMask;
+import org.yamcs.simulator.cfdp.CfdpCcsdsPacket;
+import org.yamcs.tctm.CcsdsPacket;
+import org.yamcs.security.sdls.SdlsSecurityAssociation.VerificationStatusCode;
 import org.yamcs.tctm.ccsds.error.CrcCciitCalculator;
 import org.yamcs.utils.ByteArrayUtils;
 import org.yamcs.utils.StringConverter;
 
 /**
  * Works as a child of {@link UdpTcFrameLink} and handles commands for one VC.
- * 
- * * It implements FARM part of the COP-1 protocol
- * CCSDS 232.1-B-2 ( COMMUNICATIONS OPERATION PROCEDURE-1)
- * 
- * @author nm
+ *
+ * * It implements FARM part of the COP-1 protocol CCSDS 232.1-B-2 ( COMMUNICATIONS OPERATION PROCEDURE-1)
  *
  */
 public class TcVcFrameLink {
@@ -32,9 +33,25 @@ public class TcVcFrameLink {
 
     int farmBCounter;
 
-    public TcVcFrameLink(ColSimulator simulator, int vcId) {
+    byte[] authMask;
+
+    // Optionally, a security association to encrypt/decrypt data on the link
+    SdlsSecurityAssociation maybeSdls = null;
+
+    public TcVcFrameLink(ColSimulator simulator, int vcId, SdlsSecurityAssociation maybeSdls) {
         this.simulator = simulator;
         this.vcId = vcId;
+
+        // If we have an encryption key, configure encryption
+        if (maybeSdls != null) {
+            // Create an auth mask for the TC primary header,
+            // the frame data is already part of authentication.
+            this.maybeSdls = maybeSdls;
+            authMask = StandardAuthMask.TC(false, maybeSdls.securityHdrAuthMask());
+            // Don't verify the first TC sequence number, because Yamcs has sequence number persistence and the
+            // simulator does not.
+            maybeSdls.skipVerifyingNextSeqNum();
+        }
     }
 
     void processTcFrame(byte[] data, int offset, int length) {
@@ -53,7 +70,8 @@ public class TcVcFrameLink {
 
         int frameSeq = data[offset + 4] & 0xFF;
         log.info(
-                "Received TC frame data length: {}, frameLength: {}, spacecraftId: {}, VC: {}, frameSeq: {}, bypassFlag: {}",
+                "Received TC frame data length: {}, frameLength: {}, spacecraftId: {}, VC: {}, frameSeq: {}, " +
+                        "bypassFlag: {}",
                 length, frameLength, spacecraftId, virtualChannelId, frameSeq, bypassFlag);
 
         if (vn != 0) {
@@ -73,6 +91,24 @@ public class TcVcFrameLink {
         }
         int cmdLength = frameLength - 7;
         offset += 5;
+
+        // If the link is encrypted, decrypt data
+        if (maybeSdls != null) {
+            // And followed by a security trailer
+            int secTrailerEnd = frameLength - 2; // last 2 bytes of frame are CRC
+            // Try to verify and decrypt it, handle any errors
+            VerificationStatusCode decryptionStatus = maybeSdls.processSecurity(data,
+                    offset - 5, offset, secTrailerEnd, authMask);
+            if (decryptionStatus != VerificationStatusCode.NoFailure) {
+                log.warn("Could not decrypt frame: {}", decryptionStatus);
+                return;
+            }
+
+            // Adjustments to account for security header/trailer
+            cmdLength -= maybeSdls.getOverheadBytes();
+            offset += maybeSdls.getHeaderSize();
+        }
+
         if (controlCommand) {// BC frame
             if (bypassFlag) {
                 log.warn("Invalid frame with both control and bypass flags set, ignoring");
@@ -125,7 +161,10 @@ public class TcVcFrameLink {
 
     private void processCommand(byte[] data, int offset, int length) {
         ByteBuffer bb = ByteBuffer.wrap(data, offset, length).slice();
-        simulator.processTc(new ColumbusCcsdsPacket(bb));
+        SimulatorCcsdsPacket packet = (CcsdsPacket.getAPID(bb) == CfdpCcsdsPacket.APID) ? new CfdpCcsdsPacket(bb)
+                : new ColumbusCcsdsPacket(bb);
+
+        simulator.processTc(packet);
     }
 
     private void processControlCommand(byte[] data, int offset, int length) {

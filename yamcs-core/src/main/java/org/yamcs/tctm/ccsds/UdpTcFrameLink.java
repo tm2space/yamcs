@@ -5,12 +5,15 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import org.yamcs.ConfigurationException;
 import org.yamcs.Spec;
 import org.yamcs.Spec.OptionType;
 import org.yamcs.YConfiguration;
+import org.yamcs.security.sdls.SdlsSecurityAssociation;
+import org.yamcs.tctm.ccsds.UplinkManagedParameters.SdlsInfo;
 import org.yamcs.utils.StringConverter;
 
 import com.google.common.util.concurrent.RateLimiter;
@@ -28,11 +31,11 @@ import com.google.common.util.concurrent.RateLimiter;
  */
 public class UdpTcFrameLink extends AbstractTcFrameLink implements Runnable {
     String host;
-    int port;
-    DatagramSocket socket;
-    InetAddress address;
+    protected int port;
+    protected DatagramSocket socket;
+    protected InetAddress address;
     Thread thread;
-    RateLimiter rateLimiter;
+    protected RateLimiter rateLimiter;
 
     @Override
     public Spec getSpec() {
@@ -152,5 +155,25 @@ public class UdpTcFrameLink extends AbstractTcFrameLink implements Runnable {
     @Override
     protected Status connectionStatus() {
         return Status.OK;
+    }
+
+    /**
+     * @param spi the Security Parameter Index (SPI) for which to get a Security Assocation (SA)
+     * @return the SA, or null if none is associated with the SPI
+     */
+    public SdlsSecurityAssociation getSdls(short spi) {
+        SdlsInfo sdlsInfo = this.multiplexer.tcManagedParameters.sdlsSecurityAssociations.get(spi);
+        if (sdlsInfo != null)
+            return sdlsInfo.sa();
+        return null;
+    }
+
+    public void setSpi(int vcId, short spi) {
+        this.multiplexer.tcManagedParameters.getVcParams(vcId)
+                .encryptionSpi = spi;
+    }
+
+    public Collection<Short> getSpis() {
+        return this.multiplexer.tcManagedParameters.sdlsSecurityAssociations.keySet();
     }
 }

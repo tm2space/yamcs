@@ -16,14 +16,14 @@ public class TcManagedParameters extends UplinkManagedParameters {
 
     public enum PriorityScheme {
         FIFO, ABSOLUTE, POLLING_VECTOR
-    };
+    }
 
     PriorityScheme priorityScheme;
 
     List<TcVcManagedParameters> vcParams = new ArrayList<>();
 
-    public TcManagedParameters(YConfiguration config) {
-        super(config);
+    public TcManagedParameters(YConfiguration config, String yamcsInstance, String linkName) {
+        super(config, yamcsInstance, linkName);
         maxFrameLength = config.getInt("maxFrameLength");
 
         if (maxFrameLength < 8 || maxFrameLength > 0xFFFF) {
@@ -120,7 +120,7 @@ public class TcManagedParameters extends UplinkManagedParameters {
 
         ServiceType service;
         boolean useCop1;
-        int maxFrameLength = -1;
+        int maxFrameLength;
         public boolean multiplePacketsPerFrame;
         public boolean bdAbsolutePriority;
 
@@ -132,7 +132,7 @@ public class TcManagedParameters extends UplinkManagedParameters {
         String linkName;
 
         public TcVcManagedParameters(YConfiguration config, TcManagedParameters tcParams) {
-            super(config);
+            super(config, tcParams);
             this.tcParams = tcParams;
             this.errorDetection = config.getEnum("errorDetection", FrameErrorDetection.class,
                     null);
